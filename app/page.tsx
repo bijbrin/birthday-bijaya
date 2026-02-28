@@ -553,4 +553,4 @@ export default function BirthdayApp() {
       <BirthdayAppContent />
     </Suspense>
   );
-}
+}// Cache bust: Sun Mar  1 07:09:41 AM CST 2026
