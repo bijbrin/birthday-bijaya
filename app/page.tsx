@@ -1,428 +1,432 @@
 'use client';
 
-import { useEffect, useState, useCallback, memo } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
-import { Sparkles, Trophy, Star, Gift, Heart, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
 
-// Types
-interface GameState {
-  currentLevel: number;
-  completedLevels: number[];
-  totalScore: number;
-}
-
-// Static stars for background
-const STARS = Array.from({ length: 60 }, (_, i) => ({
-  id: i,
-  x: (i * 7) % 100,
-  y: (i * 13) % 100,
-  size: 1 + (i % 3),
-  delay: i * 0.1,
-}));
-
-// Background Component
-const StarBackground = memo(function StarBackground() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
-
+// Thank You Message Component
+const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
   return (
-    <div className="fixed inset-0 pointer-events-none" aria-hidden="true">
-      {STARS.map((star) => (
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-4xl opacity-20"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              rotate: [0, 10, -10, 0],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          >
+            {['🎈', '🎉', '✨', '🎂', '🎁', '💝', '🌟', '🎊'][i % 8]}
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="relative z-10 text-center max-w-md">
         <motion.div
-          key={star.id}
-          className="absolute rounded-full bg-white"
-          style={{ left: `${star.x}%`, top: `${star.y}%`, width: star.size, height: star.size }}
-          animate={{ opacity: [0.2, 0.8, 0.2] }}
-          transition={{ duration: 2 + Math.random(), delay: star.delay, repeat: Infinity }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', duration: 0.8 }}
+          className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 flex items-center justify-center shadow-2xl"
+        >
+          <span className="text-5xl">💝</span>
+        </motion.div>
+
+        <motion.h1 
+          className="text-4xl font-black mb-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+            Thank You!
+          </span>
+        </motion.h1>
+
+        <motion.p 
+          className="text-lg text-white/80 mb-2"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          For all the birthday wishes!
+        </motion.p>
+
+        <motion.p 
+          className="text-white/60 mb-8 text-sm"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          Your messages made my day special 💫
+        </motion.p>
+
+        <motion.div
+          className="glass rounded-2xl p-6 mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <p className="text-white/70 text-sm italic">
+            "Grateful for another year of life and for amazing people like you in it."
+          </p>
+          <p className="text-white/50 text-xs mt-3">— Bijaya</p>
+        </motion.div>
+
+        <motion.button
+          onClick={onPlayGame}
+          className="w-full py-4 rounded-2xl font-bold text-lg text-white relative overflow-hidden group"
+          style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <span className="relative z-10 flex items-center justify-center gap-2">
+            <span>🎮</span>
+            Play Birthday Bird
+            <span>🐦</span>
+          </span>
+        </motion.button>
+
+        <motion.p 
+          className="text-white/40 text-xs mt-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          Tap to flap • Avoid pipes
+        </motion.p>
+      </div>
+    </motion.div>
+  );
+};
+
+// Flappy Bird Game
+const FlappyGame = ({ onBack }: { onBack: () => void }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [gameState, setGameState] = useState<'waiting' | 'playing' | 'gameover'>('waiting');
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+
+  // Game constants
+  const GRAVITY = 0.25;
+  const JUMP = -6;
+  const PIPE_SPEED = 2;
+  const PIPE_GAP = 140;
+  const PIPE_WIDTH = 50;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size for mobile
+    canvas.width = Math.min(window.innerWidth - 32, 400);
+    canvas.height = 500;
+
+    let animationId: number;
+    let bird = { x: 50, y: canvas.height / 2, velocity: 0, radius: 15 };
+    let pipes: { x: number; topHeight: number; passed: boolean }[] = [];
+    let frameCount = 0;
+    let currentScore = 0;
+
+    const resetGame = () => {
+      bird = { x: 50, y: canvas.height / 2, velocity: 0, radius: 15 };
+      pipes = [];
+      frameCount = 0;
+      currentScore = 0;
+      setScore(0);
+    };
+
+    const jump = () => {
+      if (gameState === 'waiting') {
+        setGameState('playing');
+        bird.velocity = JUMP;
+      } else if (gameState === 'playing') {
+        bird.velocity = JUMP;
+      } else if (gameState === 'gameover') {
+        setGameState('waiting');
+        resetGame();
+      }
+    };
+
+    const handleInput = () => jump();
+    canvas.addEventListener('click', handleInput);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(); });
+
+    const drawBird = () => {
+      ctx.save();
+      ctx.translate(bird.x, bird.y);
+      ctx.rotate(Math.min(Math.max(bird.velocity * 0.05, -0.5), 0.5));
+      
+      // Bird body
+      ctx.beginPath();
+      ctx.arc(0, 0, bird.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fill();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Eye
+      ctx.beginPath();
+      ctx.arc(5, -5, 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(6, -5, 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'black';
+      ctx.fill();
+
+      // Beak
+      ctx.beginPath();
+      ctx.moveTo(8, 2);
+      ctx.lineTo(18, 6);
+      ctx.lineTo(8, 10);
+      ctx.fillStyle = '#f97316';
+      ctx.fill();
+
+      // Wing
+      ctx.beginPath();
+      ctx.ellipse(-5, 5, 8, 5, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fill();
+
+      ctx.restore();
+    };
+
+    const drawPipe = (pipe: typeof pipes[0]) => {
+      const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + PIPE_WIDTH, 0);
+      gradient.addColorStop(0, '#22c55e');
+      gradient.addColorStop(0.5, '#4ade80');
+      gradient.addColorStop(1, '#16a34a');
+
+      // Top pipe
+      ctx.fillStyle = gradient;
+      ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+      ctx.strokeStyle = '#15803d';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+
+      // Top pipe cap
+      ctx.fillRect(pipe.x - 3, pipe.topHeight - 20, PIPE_WIDTH + 6, 20);
+      ctx.strokeRect(pipe.x - 3, pipe.topHeight - 20, PIPE_WIDTH + 6, 20);
+
+      // Bottom pipe
+      const bottomY = pipe.topHeight + PIPE_GAP;
+      ctx.fillRect(pipe.x, bottomY, PIPE_WIDTH, canvas.height - bottomY);
+      ctx.strokeRect(pipe.x, bottomY, PIPE_WIDTH, canvas.height - bottomY);
+
+      // Bottom pipe cap
+      ctx.fillRect(pipe.x - 3, bottomY, PIPE_WIDTH + 6, 20);
+      ctx.strokeRect(pipe.x - 3, bottomY, PIPE_WIDTH + 6, 20);
+    };
+
+    const drawBackground = () => {
+      // Sky gradient
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#1e1b4b');
+      gradient.addColorStop(1, '#312e81');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Clouds
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      for (let i = 0; i < 5; i++) {
+        const x = ((frameCount * 0.5) + i * 100) % (canvas.width + 100) - 50;
+        const y = 50 + i * 30;
+        ctx.beginPath();
+        ctx.arc(x, y, 30, 0, Math.PI * 2);
+        ctx.arc(x + 25, y - 10, 35, 0, Math.PI * 2);
+        ctx.arc(x + 50, y, 30, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+
+    const checkCollision = (pipe: typeof pipes[0]) => {
+      const inPipeX = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + PIPE_WIDTH;
+      const inPipeY = bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > pipe.topHeight + PIPE_GAP;
+      return inPipeX && inPipeY;
+    };
+
+    const gameLoop = () => {
+      drawBackground();
+
+      if (gameState === 'playing' || gameState === 'waiting') {
+        // Update bird
+        bird.velocity += GRAVITY;
+        bird.y += bird.velocity;
+
+        // Floor/ceiling collision
+        if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
+          setGameState('gameover');
+          if (currentScore > highScore) setHighScore(currentScore);
+        }
+
+        // Update pipes
+        if (gameState === 'playing') {
+          frameCount++;
+
+          // Spawn pipes
+          if (frameCount % 120 === 0) {
+            const minHeight = 50;
+            const maxHeight = canvas.height - PIPE_GAP - minHeight;
+            pipes.push({
+              x: canvas.width,
+              topHeight: Math.random() * (maxHeight - minHeight) + minHeight,
+              passed: false,
+            });
+          }
+
+          // Move pipes and check collisions
+          pipes = pipes.filter((pipe) => {
+            pipe.x -= PIPE_SPEED;
+
+            // Check collision
+            if (checkCollision(pipe)) {
+              setGameState('gameover');
+              if (currentScore > highScore) setHighScore(currentScore);
+            }
+
+            // Score point
+            if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
+              pipe.passed = true;
+              currentScore++;
+              setScore(currentScore);
+            }
+
+            return pipe.x > -PIPE_WIDTH;
+          });
+        }
+
+        // Draw pipes
+        pipes.forEach(drawPipe);
+
+        // Draw bird
+        drawBird();
+      }
+
+      // Draw UI
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 32px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(score.toString(), canvas.width / 2, 50);
+
+      if (gameState === 'waiting') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 24px Inter, sans-serif';
+        ctx.fillText('TAP TO START', canvas.width / 2, canvas.height / 2);
+      }
+
+      if (gameState === 'gameover') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 32px Inter, sans-serif';
+        ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 40);
+        
+        ctx.font = '20px Inter, sans-serif';
+        ctx.fillText(`Score: ${currentScore}`, canvas.width / 2, canvas.height / 2 + 10);
+        ctx.fillText(`Best: ${Math.max(highScore, currentScore)}`, canvas.width / 2, canvas.height / 2 + 40);
+        
+        ctx.font = '16px Inter, sans-serif';
+        ctx.fillStyle = '#a78bfa';
+        ctx.fillText('Tap to restart', canvas.width / 2, canvas.height / 2 + 80);
+      }
+
+      animationId = requestAnimationFrame(gameLoop);
+    };
+
+    gameLoop();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      canvas.removeEventListener('click', handleInput);
+      canvas.removeEventListener('touchstart', handleInput);
+    };
+  }, [gameState, highScore]);
+
+  return (
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className="w-full max-w-md">
+        <div className="flex items-center justify-between mb-4">
+          <button 
+            onClick={onBack}
+            className="px-4 py-2 rounded-xl glass text-white text-sm font-medium hover:bg-white/10 transition-colors"
+          >
+            ← Back
+          </button>
+          <div className="text-right">
+            <p className="text-white/60 text-xs">Best: {highScore}</p>
+          </div>
+        </div>
+
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+          <canvas
+            ref={canvasRef}
+            className="block touch-none cursor-pointer"
+            style={{ background: '#1e1b4b' }}
+          />
+        </div>
+
+        <p className="text-center text-white/40 text-sm mt-4">
+          Tap screen to flap • Avoid green pipes
+        </p>
+      </div>
+    </motion.div>
+  );
+};
+
+// Main App
+export default function BirthdayThanks() {
+  const [showGame, setShowGame] = useState(false);
+
+  return (
+    <main className="min-h-screen relative overflow-hidden">
+      {/* Gradient Background */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950"></div>
+        <div className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.2) 0%, transparent 50%),
+                              radial-gradient(circle at 40% 20%, rgba(99, 102, 241, 0.2) 0%, transparent 50%)`
+          }}
         />
-      ))}
-    </div>
-  );
-});
-
-// Progress Bar Component
-const ProgressBar = ({ current, total }: { current: number; total: number }) => (
-  <div className="flex items-center gap-3">
-    <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-      <motion.div 
-        className="h-full rounded-full"
-        style={{ background: 'linear-gradient(90deg, #8b5cf6, #ec4899)' }}
-        initial={{ width: 0 }}
-        animate={{ width: `${(current / total) * 100}%` }}
-        transition={{ duration: 0.5 }}
-      />
-    </div>
-    <span className="text-sm font-medium text-white/60">{current}/{total}</span>
-  </div>
-);
-
-// Level 1: Hero
-const Level1Hero = ({ onComplete }: { onComplete: () => void }) => {
-  const [celebrating, setCelebrating] = useState(false);
-
-  const celebrate = () => {
-    setCelebrating(true);
-    const end = Date.now() + 3000;
-    const frame = () => {
-      if (Date.now() > end) { onComplete(); return; }
-      confetti({ particleCount: 40, spread: 100, origin: { y: 0.6 }, colors: ['#8b5cf6', '#ec4899', '#f59e0b', '#06b6d4'] });
-      requestAnimationFrame(frame);
-    };
-    frame();
-  };
-
-  return (
-    <motion.div className="min-h-screen flex flex-col items-center justify-center px-6 py-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      
-      <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass">
-          <Sparkles className="w-4 h-4 text-yellow-400" />
-          <span className="text-sm font-medium text-white/80">Birthday Quest</span>
-        </div>
-      </motion.div>
-
-      
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }} className="text-center mb-6">
-        <h1 className="text-6xl md:text-8xl font-black tracking-tight">
-          <span className="gradient-text">HAPPY</span>
-          <br />
-          <span className="text-white">BIRTHDAY</span>
-        </h1>
-      </motion.div>
-
-      
-      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="mb-8">
-        <div className="inline-block px-8 py-3 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2))', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <span className="text-3xl md:text-5xl font-bold gradient-text-purple">Bijaya</span>
-        </div>
-      </motion.div>
-
-      
-      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-lg text-white/60 text-center max-w-md mb-12">
-        Complete all 5 levels to unlock your birthday surprise
-      </motion.p>
-
-      
-      <motion.button
-        onClick={celebrate}
-        disabled={celebrating}
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="group relative px-10 py-5 rounded-2xl font-bold text-lg text-white btn-gradient disabled:opacity-70"
-      >
-        <span className="relative z-10 flex items-center gap-3">
-          {celebrating ? 'Celebrating...' : 'Start Adventure'}
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </span>
-      </motion.button>
-    </motion.div>
-  );
-};
-
-// Level 2: Stats
-const Level2Stats = ({ onComplete }: { onComplete: () => void }) => {
-  const [collected, setCollected] = useState<Set<number>>(new Set());
-
-  const stats = [
-    { emoji: '💻', label: 'Code Written', color: 'from-cyan-500 to-blue-500' },
-    { emoji: '🚀', label: 'Dreams Launched', color: 'from-purple-500 to-pink-500' },
-    { emoji: '⚡', label: 'Ideas Sparked', color: 'from-yellow-500 to-orange-500' },
-    { emoji: '❤️', label: 'Hearts Touched', color: 'from-pink-500 to-rose-500' },
-  ];
-
-  const collect = (i: number) => {
-    if (collected.has(i)) return;
-    const next = new Set(collected).add(i);
-    setCollected(next);
-    confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 }, colors: ['#8b5cf6', '#ec4899'] });
-    if (next.size === stats.length) setTimeout(onComplete, 600);
-  };
-
-  return (
-    <motion.div className="min-h-screen flex flex-col items-center justify-center px-6 py-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="text-center mb-12">
-        <span className="text-sm font-bold tracking-wider text-purple-400">LEVEL 2</span>
-        <h2 className="text-4xl font-bold text-white mt-2">Collect Achievements</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 max-w-lg w-full mb-8">
-        {stats.map((stat, i) => {
-          const isCollected = collected.has(i);
-          return (
-            <motion.button
-              key={i}
-              onClick={() => collect(i)}
-              className={`relative p-6 rounded-2xl border transition-all duration-300 ${
-                isCollected 
-                  ? `bg-gradient-to-br ${stat.color} border-transparent` 
-                  : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06]'
-              }`}
-              whileHover={{ y: -4, scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <div className="text-4xl mb-3">{stat.emoji}</div>
-              <div className="text-3xl font-black text-white mb-1">∞</div>
-              <div className="text-sm text-white/80">{stat.label}</div>
-              {isCollected && (
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute top-3 right-3">
-                  <CheckCircle2 className="w-5 h-5 text-white" />
-                </motion.div>
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
-
-      <ProgressBar current={collected.size} total={stats.length} />
-    </motion.div>
-  );
-};
-
-// Level 3: Wishes
-const Level3Wishes = ({ onComplete }: { onComplete: () => void }) => {
-  const [opened, setOpened] = useState<Set<number>>(new Set());
-
-  const wishes = [
-    { icon: '🎂', title: 'Sweet Success', text: 'May your code always compile' },
-    { icon: '🚀', title: 'Sky High', text: 'Dream beyond the clouds' },
-    { icon: '✨', title: 'Sparkle On', text: 'Creativity never dims' },
-    { icon: '🔥', title: 'Stay Lit', text: 'Passion burns brighter' },
-    { icon: '💎', title: 'Pure Gold', text: 'Ideas are precious' },
-    { icon: '🌟', title: 'Star Power', text: 'Shine in your story' },
-  ];
-
-  const open = (i: number) => {
-    if (opened.has(i)) return;
-    const next = new Set(opened).add(i);
-    setOpened(next);
-    if (next.size === wishes.length) setTimeout(onComplete, 800);
-  };
-
-  return (
-    <motion.div className="min-h-screen flex flex-col items-center justify-center px-6 py-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="text-center mb-12">
-        <span className="text-sm font-bold tracking-wider text-pink-400">LEVEL 3</span>
-        <h2 className="text-4xl font-bold text-white mt-2">Open Your Wishes</h2>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl w-full">
-        {wishes.map((wish, i) => {
-          const isOpened = opened.has(i);
-          return (
-            <motion.button
-              key={i}
-              onClick={() => open(i)}
-              className="relative h-36"
-              initial={{ opacity: 0, rotateY: 90 }}
-              animate={{ opacity: 1, rotateY: 0 }}
-              transition={{ delay: i * 0.08 }}
-            >
-              <AnimatePresence mode="wait">
-                {!isOpened ? (
-                  <motion.div
-                    key="closed"
-                    className="absolute inset-0 rounded-2xl flex items-center justify-center cursor-pointer"
-                    style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)' }}
-                    whileHover={{ scale: 1.03 }}
-                    exit={{ rotateY: 90, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Gift className="w-10 h-10 text-white" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="open"
-                    className="absolute inset-0 rounded-2xl p-4 flex flex-col items-center justify-center text-center glass"
-                    initial={{ rotateY: -90, opacity: 0 }}
-                    animate={{ rotateY: 0, opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="text-3xl mb-2">{wish.icon}</div>
-                    <h3 className="font-bold text-white text-sm">{wish.title}</h3>
-                    <p className="text-xs text-white/60 mt-1">{wish.text}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.button>
-          );
-        })}
-      </div>
-
-      <div className="mt-8"><ProgressBar current={opened.size} total={wishes.length} /></div>
-    </motion.div>
-  );
-};
-
-// Level 4: Timeline
-const Level4Timeline = ({ onComplete }: { onComplete: () => void }) => {
-  const [stage, setStage] = useState(0);
-
-  const stages = [
-    { emoji: '📚', year: 'Past', title: 'Foundation', desc: 'Every line of code' },
-    { emoji: '🎉', year: 'Now', title: 'Celebration', desc: 'This moment, being celebrated' },
-    { emoji: '🔮', year: 'Future', title: 'Horizon', desc: 'Infinite possibilities' },
-  ];
-
-  const activate = (i: number) => {
-    if (i > stage) return;
-    setStage(i + 1);
-    if (i + 1 === stages.length) setTimeout(onComplete, 500);
-  };
-
-  return (
-    <motion.div className="min-h-screen flex flex-col items-center justify-center px-6 py-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="text-center mb-12">
-        <span className="text-sm font-bold tracking-wider text-cyan-400">LEVEL 4</span>
-        <h2 className="text-4xl font-bold text-white mt-2">Your Journey</h2>
-      </div>
-
-      <div className="max-w-md w-full space-y-4">
-        {stages.map((s, i) => {
-          const isDone = i < stage, isActive = i === stage, isLocked = i > stage;
-          return (
-            <motion.button
-              key={i}
-              onClick={() => activate(i)}
-              disabled={isLocked}
-              className={`w-full p-5 rounded-2xl border text-left transition-all ${
-                isDone ? 'bg-green-500/10 border-green-500/30' : isActive ? 'bg-purple-500/10 border-purple-500/50' : 'bg-white/[0.02] border-white/5 opacity-50'
-              }`}
-              whileHover={!isLocked ? { x: 8 } : {}}
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.15 }}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${isDone ? 'bg-green-500' : isActive ? 'bg-purple-500' : 'bg-gray-800'}`}>
-                  {isDone ? <CheckCircle2 className="w-6 h-6 text-white" /> : <span>{s.emoji}</span>}
-                </div>
-                <div>
-                  <span className={`text-xs font-bold ${isActive ? 'text-purple-400' : 'text-white/40'}`}>{s.year}</span>
-                  <h3 className="font-bold text-white">{s.title}</h3>
-                  <p className="text-sm text-white/50">{s.desc}</p>
-                </div>
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-};
-
-// Level 5: Final
-const Level5Final = ({ onRestart }: { onRestart: () => void }) => {
-  const [done, setDone] = useState(false);
-
-  const megaCelebrate = () => {
-    setDone(true);
-    const end = Date.now() + 5000;
-    const frame = () => {
-      if (Date.now() > end) return;
-      confetti({ particleCount: 100, spread: 360, origin: { x: Math.random(), y: Math.random() * 0.5 }, colors: ['#8b5cf6', '#ec4899', '#f59e0b', '#06b6d4', '#ffffff'] });
-      requestAnimationFrame(frame);
-    };
-    frame();
-  };
-
-  return (
-    <motion.div className="min-h-screen flex flex-col items-center justify-center px-6 py-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }} className="w-32 h-32 mb-8 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f59e0b, #ec4899, #8b5cf6)' }}>
-        <Trophy className="w-16 h-16 text-white" />
-      </motion.div>
-
-      <div className="text-center max-w-lg">
-        <span className="text-sm font-bold tracking-wider text-yellow-400">LEVEL 5 - COMPLETE</span>
-        <h1 className="text-5xl md:text-6xl font-black text-white mt-4 mb-6">YOU DID IT!</h1>
-        <p className="text-lg text-white/70 mb-8">Happy Birthday Bijaya! You've conquered all levels. May this year bring everything you dream of.</p>
-
-        <div className="flex flex-wrap justify-center gap-4">
-          <motion.button onClick={megaCelebrate} className="px-8 py-4 rounded-xl font-bold text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #ec4899)' }} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Sparkles className="w-5 h-5 inline mr-2" />{done ? 'Celebrated! 🎉' : 'Celebrate'}
-          </motion.button>
-          <motion.button onClick={onRestart} className="px-8 py-4 rounded-xl font-bold text-white glass glass-hover" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            Play Again
-          </motion.button>
-        </div>
-      </div>
-
-      <div className="mt-12 flex gap-3">{['🎉', '🎂', '🎈', '🎁', '✨', '🌟'].map((e, i) => (
-        <motion.span key={i} className="text-3xl" animate={{ y: [0, -12, 0] }} transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}>{e}</motion.span>
-      ))}</div>
-    </motion.div>
-  );
-};
-
-// Main
-export default function BirthdayGame() {
-  const [game, setGame] = useState<GameState>({ currentLevel: 1, completedLevels: [], totalScore: 0 });
-
-  const complete = (level: number) => setGame(g => ({ ...g, completedLevels: [...g.completedLevels, level], currentLevel: level + 1, totalScore: g.totalScore + 100 }));
-  const select = (level: number) => setGame(g => ({ ...g, currentLevel: level }));
-  const restart = () => setGame({ currentLevel: 1, completedLevels: [], totalScore: 0 });
-
-  const levels = [
-    { id: 1, icon: Sparkles },
-    { id: 2, icon: Trophy },
-    { id: 3, icon: Gift },
-    { id: 4, icon: Star },
-    { id: 5, icon: Heart },
-  ];
-
-  return (
-    <main className="relative min-h-screen overflow-x-hidden" style={{ background: 'var(--bg-primary)' }}>
-      <StarBackground />
-
-      
-      <header className="fixed top-0 left-0 right-0 z-50 p-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)' }}>
-              <span className="text-xl">🎂</span>
-            </div>
-            <span className="font-bold text-white hidden sm:block">Birthday Quest</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="px-4 py-2 rounded-full glass"><span className="text-white/60 text-sm">Score: </span><span className="font-bold text-white">{game.totalScore}</span></div>
-            <div className="px-4 py-2 rounded-full" style={{ background: 'rgba(139,92,246,0.2)' }}><span className="font-bold text-purple-300">{game.currentLevel}/5</span></div>
-          </div>
-        </div>
-      </header>
-
-      
-      {game.currentLevel <= 5 && (
-        <nav className="fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden lg:block">
-          <div className="space-y-2">{levels.map((l) => {
-            const done = game.completedLevels.includes(l.id), current = game.currentLevel === l.id, unlocked = l.id <= game.currentLevel;
-            return (
-              <motion.button key={l.id} onClick={() => unlocked && select(l.id)} className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${done ? 'bg-green-500 text-white' : current ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/40' : unlocked ? 'bg-white/5 text-white hover:bg-white/10' : 'bg-gray-800 text-gray-600'}`} whileHover={unlocked ? { scale: 1.1 } : {}} whileTap={unlocked ? { scale: 0.95 } : {}}>
-                <l.icon className="w-5 h-5" />
-              </motion.button>
-            );
-          })}</div>
-        </nav>
-      )}
-
-      
-      <div className="pt-24">
-        <AnimatePresence mode="wait">
-          {game.currentLevel === 1 && <Level1Hero key="l1" onComplete={() => complete(1)} />}
-          {game.currentLevel === 2 && <Level2Stats key="l2" onComplete={() => complete(2)} />}
-          {game.currentLevel === 3 && <Level3Wishes key="l3" onComplete={() => complete(3)} />}
-          {game.currentLevel === 4 && <Level4Timeline key="l4" onComplete={() => complete(4)} />}
-          {game.currentLevel === 5 && <Level5Final key="l5" onRestart={restart} />}
-        </AnimatePresence>
-      </div>
-
-      <footer className="py-6 text-center text-white/30 text-sm">Made with ❤️ for Bijaya</footer>
+      <AnimatePresence mode="wait">
+        {!showGame ? (
+          <ThankYouMessage key="thanks" onPlayGame={() => setShowGame(true)} />
+        ) : (
+          <FlappyGame key="game" onBack={() => setShowGame(false)} />
+        )}
+      </AnimatePresence>
     </main>
   );
 }
