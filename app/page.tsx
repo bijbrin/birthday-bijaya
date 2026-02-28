@@ -1,255 +1,297 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Sparkles, Heart, Gift, Code, Rocket, Zap, Crown, ChevronDown } from 'lucide-react';
+import { Sparkles, Trophy, Star, Gift, Heart, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
 
-const generateStars = () => Array.from({ length: 150 }, (_, i) => ({
-  id: i,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  size: Math.random() * 3 + 1,
-  duration: Math.random() * 4 + 2,
-  delay: Math.random() * 5,
-}));
+// Game State
+interface GameState {
+  currentLevel: number;
+  completedLevels: number[];
+  totalScore: number;
+}
 
+// Star Field Background
 const StarField = () => {
-  const [stars] = useState(() => generateStars());
+  const [stars] = useState(() => 
+    Array.from({ length: 100 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2 + 1,
+      duration: Math.random() * 3 + 2,
+      delay: Math.random() * 5,
+    }))
+  );
+
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
       {stars.map((star) => (
-        <div
+        <motion.div
           key={star.id}
-          className="star absolute rounded-full bg-white"
+          className="absolute rounded-full bg-white"
           style={{
             left: `${star.x}%`,
             top: `${star.y}%`,
             width: `${star.size}px`,
             height: `${star.size}px`,
-            '--duration': `${star.duration}s`,
-            '--delay': `${star.delay}s`,
-          } as React.CSSProperties}
+          }}
+          animate={{ opacity: [0.2, 1, 0.2], scale: [1, 1.5, 1] }}
+          transition={{ duration: star.duration, delay: star.delay, repeat: Infinity }}
         />
       ))}
     </div>
   );
 };
 
-const generateParticles = () => {
-  const emojis = ['🎉', '✨', '🎂', '🎈', '🎁', '🌟', '💫', '🔥'];
-  return Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    emoji: emojis[i % emojis.length],
-    x: Math.random() * 100,
-    delay: Math.random() * 10,
-    duration: Math.random() * 10 + 10,
-  }));
-};
-
-const FloatingParticles = () => {
-  const [particles] = useState(() => generateParticles());
+// Level Button Component
+const LevelButton = ({ 
+  level, 
+  title, 
+  icon: Icon, 
+  isUnlocked, 
+  isCompleted, 
+  isCurrent,
+  onClick 
+}: { 
+  level: number;
+  title: string;
+  icon: any;
+  isUnlocked: boolean;
+  isCompleted: boolean;
+  isCurrent: boolean;
+  onClick: () => void;
+}) => {
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute text-2xl"
-          style={{ left: `${p.x}%` }}
-          initial={{ y: '110vh', opacity: 0 }}
-          animate={{ y: '-10vh', opacity: [0, 1, 1, 0], rotate: [0, 360] }}
-          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'linear' }}
-        >
-          {p.emoji}
-        </motion.div>
-      ))}
-    </div>
+    <motion.button
+      onClick={isUnlocked ? onClick : undefined}
+      className={`relative w-full max-w-md mx-auto p-6 rounded-2xl border-2 transition-all duration-300 ${
+        isCompleted 
+          ? 'bg-green-500/20 border-green-400/50' 
+          : isCurrent 
+            ? 'bg-purple-500/30 border-purple-400 shadow-lg shadow-purple-500/30' 
+            : isUnlocked 
+              ? 'bg-white/5 border-white/20 hover:bg-white/10' 
+              : 'bg-gray-900/50 border-gray-700 opacity-50 cursor-not-allowed'
+      }`}
+      whileHover={isUnlocked ? { scale: 1.02, y: -2 } : {}}
+      whileTap={isUnlocked ? { scale: 0.98 } : {}}
+    >
+      <div className="flex items-center gap-4">
+        <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${
+          isCompleted 
+            ? 'bg-green-500 text-white' 
+            : isCurrent 
+              ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white' 
+              : isUnlocked 
+                ? 'bg-white/10 text-white' 
+                : 'bg-gray-800 text-gray-500'
+        }`}>
+          {isCompleted ? <CheckCircle2 className="w-7 h-7" /> : <Icon className="w-7 h-7" />}
+        </div>
+        
+        <div className="flex-1 text-left">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-white/50">LEVEL {level}</span>
+            {isCurrent && <span className="px-2 py-0.5 bg-purple-500 text-xs rounded-full text-white">CURRENT</span>}
+          </div>
+          <h3 className={`text-xl font-bold ${isUnlocked ? 'text-white' : 'text-gray-500'}`}>{title}</h3>
+        </div>
+        
+        <div className="text-right">
+          {!isUnlocked && <Lock className="w-6 h-6 text-gray-600" />}
+          {isCompleted && <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />}
+          {isCurrent && <ArrowRight className="w-6 h-6 text-purple-400" />}
+        </div>
+      </div>
+      
+      {/* Progress bar for current level */}
+      {isCurrent && (
+        <motion.div 
+          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-b-2xl"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 1, delay: 0.3 }}
+        />
+      )}
+    </motion.button>
   );
 };
 
-const Hero = ({ onCelebrate }: { onCelebrate: () => void }) => {
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-  const y2 = useTransform(scrollY, [0, 500], [0, -100]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-  const scale = useTransform(scrollY, [0, 300], [1, 0.8]);
-
-  const scrollToContent = () => {
-    window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+// Level 1: Start Screen
+const Level1Start = ({ onComplete }: { onComplete: () => void }) => {
+  const [clicked, setClicked] = useState(false);
+  
+  const handleCelebrate = () => {
+    setClicked(true);
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+    
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        onComplete();
+        return;
+      }
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({ ...defaults, particleCount, origin: { x: Math.random() * 0.3 + 0.1, y: Math.random() - 0.2 }, colors: ['#7c3aed', '#f472b6', '#fbbf24', '#22d3ee'] });
+      confetti({ ...defaults, particleCount, origin: { x: Math.random() * 0.3 + 0.6, y: Math.random() - 0.2 }, colors: ['#7c3aed', '#f472b6', '#fbbf24', '#22d3ee'] });
+    }, 250);
   };
 
   return (
-    <motion.section 
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden" 
-      style={{ opacity, scale }}
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-20"
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
     >
-      <motion.div 
-        className="absolute w-[600px] h-[600px] rounded-full opacity-30" 
-        style={{ background: 'radial-gradient(circle, #7c3aed 0%, transparent 70%)', y: y1, left: '-10%', top: '10%' }} 
-      />
-      <motion.div 
-        className="absolute w-[500px] h-[500px] rounded-full opacity-20" 
-        style={{ background: 'radial-gradient(circle, #f472b6 0%, transparent 70%)', y: y2, right: '-5%', bottom: '20%' }} 
-      />
-      
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 flex flex-col items-center text-center">
-        <motion.div 
-          initial={{ opacity: 0, y: 50 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <motion.div 
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full glass mb-8" 
-            initial={{ scale: 0 }} 
-            animate={{ scale: 1 }} 
-            transition={{ delay: 0.5, type: 'spring', stiffness: 200 }} 
-            whileHover={{ scale: 1.05 }}
-          >
-            <Sparkles className="w-5 h-5 text-yellow-400" />
-            <span className="text-sm font-medium tracking-wider uppercase">Today is Special</span>
-          </motion.div>
-        </motion.div>
+      <motion.div
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', duration: 1 }}
+        className="w-32 h-32 mb-8 rounded-3xl bg-gradient-to-br from-purple-500 via-pink-500 to-yellow-500 flex items-center justify-center shadow-2xl shadow-purple-500/50"
+      >
+        <span className="text-6xl">🎂</span>
+      </motion.div>
 
-        <motion.h1 
-          className="text-6xl md:text-8xl lg:text-9xl font-black mb-6" 
-          initial={{ opacity: 0, y: 100 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <span className="gradient-text">Happy</span><br />
-          <motion.span 
-            className="inline-block" 
-            animate={{ textShadow: ['0 0 20px rgba(251,191,36,0.5)', '0 0 40px rgba(244,114,182,0.8)', '0 0 20px rgba(251,191,36,0.5)'] }} 
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            Birthday
-          </motion.span>
-        </motion.h1>
+      <motion.h1 
+        className="text-5xl md:text-7xl font-black text-center mb-4"
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <span className="bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+          HAPPY BIRTHDAY
+        </span>
+      </motion.h1>
 
-        <motion.div 
-          className="relative" 
-          initial={{ opacity: 0, scale: 0.5 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          transition={{ duration: 0.8, delay: 0.6, type: 'spring' }}
-        >
-          <motion.h2 
-            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8" 
-            style={{ fontFamily: 'Playfair Display, serif' }}
-          >
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Bijaya
-            </span>
-          </motion.h2>
-          <motion.div 
-            className="absolute -top-12 left-1/2 -translate-x-1/2" 
-            animate={{ y: [0, -10, 0], rotate: [-5, 5, -5] }} 
-            transition={{ duration: 4, repeat: Infinity }}
-          >
-            <Crown className="w-16 h-16 text-yellow-400 drop-shadow-lg" />
-          </motion.div>
-        </motion.div>
+      <motion.h2 
+        className="text-3xl md:text-5xl font-bold text-center mb-8"
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        <span className="text-white">Bijaya</span>
+      </motion.h2>
 
-        <motion.p 
-          className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-12" 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
-          transition={{ delay: 0.9 }}
-        >
-          Another orbit around the sun. Another year of building dreams.
-        </motion.p>
+      <motion.p 
+        className="text-lg text-white/60 text-center max-w-md mb-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        Welcome to your birthday adventure! Complete all levels to unlock your special surprise.
+      </motion.p>
 
-        <motion.button 
-          className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-bold text-lg overflow-hidden mb-16" 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: 1.2 }} 
-          whileHover={{ scale: 1.05 }} 
-          whileTap={{ scale: 0.95 }} 
-          onClick={onCelebrate}
-        >
-          <span className="relative z-10 flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            Celebrate!
-          </span>
-          <motion.div 
-            className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600" 
-            initial={{ x: '100%' }} 
-            whileHover={{ x: 0 }} 
-            transition={{ duration: 0.3 }} 
-          />
-        </motion.button>
-
-        {/* Scroll CTA */}
-        <motion.div 
-          className="flex flex-col items-center gap-2 cursor-pointer"
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
-          transition={{ delay: 1.5 }}
-          onClick={scrollToContent}
-        >
-          <span className="text-white/50 text-sm tracking-wider uppercase">Scroll to explore</span>
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <ChevronDown className="w-8 h-8 text-white/50" />
-          </motion.div>
-        </motion.div>
-      </div>
-    </motion.section>
+      <motion.button
+        onClick={handleCelebrate}
+        disabled={clicked}
+        className="group relative px-12 py-5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold text-xl overflow-hidden disabled:opacity-50"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.8 }}
+      >
+        <span className="relative z-10 flex items-center gap-3">
+          <Sparkles className="w-6 h-6" />
+          {clicked ? 'Celebrating...' : 'Start Celebration'}
+          <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+        </span>
+      </motion.button>
+    </motion.div>
   );
 };
 
-const Stats = () => {
+// Level 2: Stats Collection
+const Level2Stats = ({ onComplete }: { onComplete: () => void }) => {
+  const [collected, setCollected] = useState<number[]>([]);
+  
   const stats = [
-    { icon: Code, value: '∞', label: 'Lines of Code', color: 'from-cyan-400 to-blue-500' },
-    { icon: Rocket, value: '∞', label: 'Dreams Launched', color: 'from-purple-400 to-pink-500' },
-    { icon: Zap, value: '∞', label: 'Ideas Sparked', color: 'from-yellow-400 to-orange-500' },
-    { icon: Heart, value: '∞', label: 'Hearts Touched', color: 'from-pink-400 to-red-500' },
+    { icon: '💻', label: 'Code Written', value: '∞', color: 'from-cyan-400 to-blue-500' },
+    { icon: '🚀', label: 'Dreams Launched', value: '∞', color: 'from-purple-400 to-pink-500' },
+    { icon: '⚡', label: 'Ideas Sparked', value: '∞', color: 'from-yellow-400 to-orange-500' },
+    { icon: '❤️', label: 'Hearts Touched', value: '∞', color: 'from-pink-400 to-red-500' },
   ];
 
+  const collectStat = (index: number) => {
+    if (collected.includes(index)) return;
+    setCollected([...collected, index]);
+    confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 }, colors: ['#7c3aed', '#f472b6'] });
+    if (collected.length + 1 === stats.length) {
+      setTimeout(onComplete, 500);
+    }
+  };
+
   return (
-    <section className="relative py-32 px-4">
-      <div className="max-w-6xl mx-auto">
-        <motion.div 
-          className="grid grid-cols-2 md:grid-cols-4 gap-8" 
-          initial="hidden" 
-          whileInView="visible" 
-          viewport={{ once: true, margin: '-100px' }} 
-          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.15 } } }}
-        >
-          {stats.map((stat, i) => (
-            <motion.div 
-              key={i} 
-              className="relative group" 
-              variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
-            >
-              <div className="glass rounded-3xl p-8 text-center hover:bg-white/10 transition-all duration-500">
-                <motion.div 
-                  className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${stat.color} mb-4`} 
-                  whileHover={{ rotate: 360, scale: 1.1 }} 
-                  transition={{ duration: 0.6 }}
-                >
-                  <stat.icon className="w-8 h-8 text-white" />
-                </motion.div>
-                <motion.div 
-                  className="text-5xl font-black mb-2 gradient-text" 
-                  whileInView={{ scale: [0.5, 1.2, 1] }} 
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                >
-                  {stat.value}
-                </motion.div>
-                <p className="text-white/60 font-medium">{stat.label}</p>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-20"
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+    >
+      <motion.div className="text-center mb-12">
+        <span className="text-purple-400 font-bold tracking-wider">LEVEL 2</span>
+        <h2 className="text-4xl font-bold text-white mt-2">Collect Your Achievements</h2>
+        <p className="text-white/60 mt-2">Click each card to collect</p>
+      </motion.div>
+
+      <div className="grid grid-cols-2 gap-4 max-w-2xl w-full">
+        {stats.map((stat, i) => (
+          <motion.button
+            key={i}
+            onClick={() => collectStat(i)}
+            className={`relative p-6 rounded-2xl border-2 transition-all ${
+              collected.includes(i) 
+                ? 'bg-gradient-to-br ' + stat.color + ' border-transparent' 
+                : 'bg-white/5 border-white/20 hover:bg-white/10'
+            }`}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <div className="text-4xl mb-3">{stat.icon}</div>
+            <div className="text-3xl font-black text-white mb-1">{stat.value}</div>
+            <div className="text-sm text-white/80">{stat.label}</div>
+            
+            {collected.includes(i) && (
+              <motion.div 
+                className="absolute top-2 right-2"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+              >
+                <CheckCircle2 className="w-6 h-6 text-white" />
+              </motion.div>
+            )}
+          </motion.button>
+        ))}
       </div>
-    </section>
+
+      <div className="mt-8 flex items-center gap-2">
+        <span className="text-white/60">Progress:</span>
+        <div className="w-48 h-3 bg-white/10 rounded-full overflow-hidden">
+          <motion.div 
+            className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+            initial={{ width: 0 }}
+            animate={{ width: `${(collected.length / stats.length) * 100}%` }}
+          />
+        </div>
+        <span className="text-white font-bold">{collected.length}/{stats.length}</span>
+      </div>
+    </motion.div>
   );
 };
 
-const Wishes = () => {
+// Level 3: Wishes
+const Level3Wishes = ({ onComplete }: { onComplete: () => void }) => {
+  const [opened, setOpened] = useState<number[]>([]);
+  
   const wishes = [
     { icon: '🎂', title: 'Sweet Success', text: 'May your code always compile on the first try' },
     { icon: '🚀', title: 'Sky High', text: 'May your dreams reach heights beyond the clouds' },
@@ -259,232 +301,353 @@ const Wishes = () => {
     { icon: '🌟', title: 'Star Power', text: 'May you always be the star of your own story' },
   ];
 
-  return (
-    <section className="relative py-32 px-4">
-      <div className="max-w-6xl mx-auto">
-        <motion.div 
-          className="text-center mb-20" 
-          initial={{ opacity: 0, y: 50 }} 
-          whileInView={{ opacity: 1, y: 0 }} 
-          viewport={{ once: true }}
-        >
-          <motion.div 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6" 
-            whileHover={{ scale: 1.05 }}
-          >
-            <Gift className="w-5 h-5 text-pink-400" />
-            <span className="text-sm font-medium">Wishes for You</span>
-          </motion.div>
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            <span className="gradient-text">Six Wishes</span><br />
-            <span className="text-white/80">for Your Journey</span>
-          </h2>
-        </motion.div>
+  const openWish = (index: number) => {
+    if (opened.includes(index)) return;
+    const newOpened = [...opened, index];
+    setOpened(newOpened);
+    if (newOpened.length === wishes.length) {
+      setTimeout(onComplete, 800);
+    }
+  };
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {wishes.map((wish, i) => (
-            <motion.div 
-              key={i} 
-              className="group relative" 
-              initial={{ opacity: 0, y: 50, rotateX: -15 }} 
-              whileInView={{ opacity: 1, y: 0, rotateX: 0 }} 
-              viewport={{ once: true }} 
-              transition={{ delay: i * 0.1, duration: 0.6 }} 
-              whileHover={{ y: -10, scale: 1.02 }}
-            >
-              <div className="glass rounded-3xl p-8 h-full hover:bg-white/10 transition-all duration-500">
-                <div className="text-6xl mb-4 floating" style={{ animationDelay: `${i * 0.5}s` }}>
-                  {wish.icon}
-                </div>
-                <h3 className="text-2xl font-bold mb-3 text-white">{wish.title}</h3>
-                <p className="text-white/60 leading-relaxed">{wish.text}</p>
-                <motion.div 
-                  className="absolute -bottom-2 -right-2 w-20 h-20 rounded-full opacity-20 blur-xl" 
-                  style={{ background: 'linear-gradient(135deg, #f472b6, #7c3aed)' }} 
-                  animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }} 
-                  transition={{ duration: 3, repeat: Infinity }} 
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
+  return (
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-20"
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+    >
+      <motion.div className="text-center mb-12">
+        <span className="text-pink-400 font-bold tracking-wider">LEVEL 3</span>
+        <h2 className="text-4xl font-bold text-white mt-2">Open Your Birthday Wishes</h2>
+        <p className="text-white/60 mt-2">Click each gift to reveal</p>
+      </motion.div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl w-full">
+        {wishes.map((wish, i) => (
+          <motion.button
+            key={i}
+            onClick={() => openWish(i)}
+            className="relative h-40 perspective-1000"
+            initial={{ opacity: 0, rotateY: 90 }}
+            animate={{ opacity: 1, rotateY: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <AnimatePresence mode="wait">
+              {!opened.includes(i) ? (
+                <motion.div
+                  key="closed"
+                  className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center cursor-pointer hover:shadow-lg hover:shadow-purple-500/30 transition-shadow"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  exit={{ rotateY: 90, opacity: 0 }}
+                >
+                  <Gift className="w-12 h-12 text-white" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="open"
+                  className="absolute inset-0 bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center"
+                  initial={{ rotateY: -90, opacity: 0 }}
+                  animate={{ rotateY: 0, opacity: 1 }}
+                >
+                  <div className="text-4xl mb-2">{wish.icon}</div>
+                  <h3 className="text-lg font-bold text-white mb-1">{wish.title}</h3>
+                  <p className="text-sm text-white/70">{wish.text}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        ))}
       </div>
-    </section>
+
+      <div className="mt-8 text-center">
+        <span className="text-white/60">{opened.length} of {wishes.length} wishes opened</span>
+      </div>
+    </motion.div>
   );
 };
 
-const Timeline = () => {
-  const milestones = [
-    { year: 'Past', title: 'The Foundation', desc: 'Every line of code, every late night, every breakthrough' },
-    { year: 'Now', title: 'The Celebration', desc: 'This moment. You. Here. Now. Being celebrated.' },
-    { year: 'Future', title: 'The Horizon', desc: 'Infinite possibilities waiting for your touch' },
+// Level 4: Timeline Journey
+const Level4Timeline = ({ onComplete }: { onComplete: () => void }) => {
+  const [activeStage, setActiveStage] = useState(0);
+  
+  const stages = [
+    { year: 'Past', title: 'The Foundation', desc: 'Every line of code, every late night, every breakthrough', icon: '📚' },
+    { year: 'Present', title: 'The Celebration', desc: 'This moment. You. Here. Now. Being celebrated.', icon: '🎉' },
+    { year: 'Future', title: 'The Horizon', desc: 'Infinite possibilities waiting for your touch', icon: '🔮' },
+  ];
+
+  const activateStage = (index: number) => {
+    if (index > activeStage) return;
+    setActiveStage(index + 1);
+    if (index + 1 === stages.length) {
+      setTimeout(onComplete, 500);
+    }
+  };
+
+  return (
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-20"
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+    >
+      <motion.div className="text-center mb-12">
+        <span className="text-cyan-400 font-bold tracking-wider">LEVEL 4</span>
+        <h2 className="text-4xl font-bold text-white mt-2">Your Journey Timeline</h2>
+        <p className="text-white/60 mt-2">Click each stage to progress</p>
+      </motion.div>
+
+      <div className="max-w-2xl w-full space-y-4">
+        {stages.map((stage, i) => (
+          <motion.button
+            key={i}
+            onClick={() => activateStage(i)}
+            disabled={i > activeStage}
+            className={`w-full p-6 rounded-2xl border-2 text-left transition-all ${
+              i < activeStage 
+                ? 'bg-green-500/20 border-green-400/50' 
+                : i === activeStage 
+                  ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 border-purple-400 animate-pulse' 
+                  : 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'
+            }`}
+            whileHover={i <= activeStage ? { scale: 1.02, x: 10 } : {}}
+            whileTap={i <= activeStage ? { scale: 0.98 } : {}}
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.2 }}
+          >
+            <div className="flex items-center gap-4">
+              <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${
+                i < activeStage ? 'bg-green-500' : i === activeStage ? 'bg-purple-500' : 'bg-gray-700'
+              }`}>
+                {i < activeStage ? <CheckCircle2 className="w-7 h-7 text-white" /> : <span>{stage.icon}</span>}
+              </div>
+              <div className="flex-1">
+                <span className={`text-sm font-bold ${i <= activeStage ? 'text-purple-400' : 'text-gray-500'}`}>
+                  {stage.year}
+                </span>
+                <h3 className={`text-xl font-bold ${i <= activeStage ? 'text-white' : 'text-gray-500'}`}>
+                  {stage.title}
+                </h3>
+                <p className={`text-sm ${i <= activeStage ? 'text-white/70' : 'text-gray-600'}`}>
+                  {stage.desc}
+                </p>
+              </div>
+            </div>
+          </motion.button>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+// Level 5: Final Boss - Birthday Message
+const Level5Final = ({ onRestart }: { onRestart: () => void }) => {
+  const [celebrated, setCelebrated] = useState(false);
+
+  const megaCelebrate = () => {
+    setCelebrated(true);
+    const duration = 5000;
+    const animationEnd = Date.now() + duration;
+    
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+      confetti({
+        particleCount: 100,
+        spread: 360,
+        origin: { x: Math.random(), y: Math.random() * 0.5 },
+        colors: ['#7c3aed', '#f472b6', '#fbbf24', '#22d3ee', '#ffffff'],
+      });
+    }, 100);
+  };
+
+  return (
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-20"
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', duration: 0.8 }}
+        className="w-40 h-40 mb-8 rounded-full bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-purple-500/50"
+      >
+        <Trophy className="w-20 h-20 text-white" />
+      </motion.div>
+
+      <motion.div className="text-center max-w-2xl">
+        <span className="text-yellow-400 font-bold tracking-wider">LEVEL 5 - FINAL</span>
+        <h1 className="text-5xl md:text-7xl font-black text-white mt-4 mb-6">
+          YOU DID IT!
+        </h1>
+        
+        <p className="text-xl text-white/80 mb-8">
+          Happy Birthday Bijaya! You've completed all levels of your birthday adventure. 
+          May this year bring you closer to everything you dream of.
+        </p>
+
+        <div className="flex flex-wrap justify-center gap-4">
+          <motion.button
+            onClick={megaCelebrate}
+            className="px-8 py-4 bg-gradient-to-r from-yellow-400 to-pink-500 rounded-2xl font-bold text-lg text-white"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Sparkles className="w-5 h-5 inline mr-2" />
+            {celebrated ? 'Celebrated! 🎉' : 'Mega Celebration'}
+          </motion.button>
+
+          <motion.button
+            onClick={onRestart}
+            className="px-8 py-4 bg-white/10 border border-white/20 rounded-2xl font-bold text-lg text-white"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Play Again
+          </motion.button>
+        </div>
+      </motion.div>
+
+      <div className="mt-12 flex justify-center gap-2">
+        {['🎉', '🎂', '🎈', '🎁', '✨', '🌟', '💫', '🔥'].map((emoji, i) => (
+          <motion.span
+            key={i}
+            className="text-3xl"
+            animate={{ y: [0, -20, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
+          >
+            {emoji}
+          </motion.span>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+// Main Game Component
+export default function BirthdayGame() {
+  const [gameState, setGameState] = useState<GameState>({
+    currentLevel: 1,
+    completedLevels: [],
+    totalScore: 0,
+  });
+
+  const completeLevel = (level: number) => {
+    setGameState(prev => ({
+      ...prev,
+      completedLevels: [...prev.completedLevels, level],
+      currentLevel: level + 1,
+      totalScore: prev.totalScore + 100,
+    }));
+  };
+
+  const selectLevel = (level: number) => {
+    setGameState(prev => ({ ...prev, currentLevel: level }));
+  };
+
+  const restart = () => {
+    setGameState({
+      currentLevel: 1,
+      completedLevels: [],
+      totalScore: 0,
+    });
+  };
+
+  const levels = [
+    { id: 1, title: 'Start Celebration', icon: Sparkles },
+    { id: 2, title: 'Collect Achievements', icon: Trophy },
+    { id: 3, title: 'Open Wishes', icon: Gift },
+    { id: 4, title: 'Journey Timeline', icon: Star },
+    { id: 5, title: 'Final Surprise', icon: Heart },
   ];
 
   return (
-    <section className="relative py-32 px-4 overflow-hidden">
-      <div className="max-w-4xl mx-auto">
-        <motion.div 
-          className="text-center mb-20" 
-          initial={{ opacity: 0 }} 
-          whileInView={{ opacity: 1 }} 
-          viewport={{ once: true }}
-        >
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            <span className="gradient-text">Your Timeline</span>
-          </h2>
-        </motion.div>
+    <main className="relative min-h-screen bg-[#0f0518] overflow-x-hidden">
+      <StarField />
 
-        <div className="relative">
-          <motion.div 
-            className="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2" 
-            style={{ background: 'linear-gradient(to bottom, #7c3aed, #f472b6, #22d3ee)' }} 
-            initial={{ scaleY: 0 }} 
-            whileInView={{ scaleY: 1 }} 
-            viewport={{ once: true }} 
-            transition={{ duration: 1.5 }} 
-          />
-
-          {milestones.map((milestone, i) => (
-            <motion.div 
-              key={i} 
-              className={`relative flex items-center gap-8 mb-20 ${i % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`} 
-              initial={{ opacity: 0, x: i % 2 === 0 ? -100 : 100 }} 
-              whileInView={{ opacity: 1, x: 0 }} 
-              viewport={{ once: true }} 
-              transition={{ delay: i * 0.2, duration: 0.6 }}
-            >
-              <div className={`flex-1 ${i % 2 === 0 ? 'text-right' : 'text-left'}`}>
-                <motion.div 
-                  className="glass rounded-2xl p-6 inline-block" 
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <span className="text-purple-400 font-bold text-sm tracking-wider">{milestone.year}</span>
-                  <h3 className="text-2xl font-bold mt-2 mb-2">{milestone.title}</h3>
-                  <p className="text-white/60">{milestone.desc}</p>
-                </motion.div>
-              </div>
-              <motion.div 
-                className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 z-10 pulse-glow" 
-                whileHover={{ scale: 1.5 }} 
-              />
-              <div className="flex-1" />
-            </motion.div>
-          ))}
+      {/* Game UI Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 p-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🎂</span>
+            <span className="text-white font-bold hidden sm:block">Bijaya's Birthday Quest</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="px-4 py-2 bg-white/10 rounded-full">
+              <span className="text-white/60 text-sm">Score: </span>
+              <span className="text-white font-bold">{gameState.totalScore}</span>
+            </div>
+            <div className="px-4 py-2 bg-purple-500/20 rounded-full">
+              <span className="text-purple-400 font-bold">Level {gameState.currentLevel}/5</span>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
-  );
-};
 
-const FinalMessage = ({ onCelebrate }: { onCelebrate: () => void }) => {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center px-4">
-      <div className="max-w-4xl mx-auto text-center">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }} 
-          whileInView={{ opacity: 1, scale: 1 }} 
-          viewport={{ once: true }} 
-          transition={{ duration: 0.8 }}
-        >
-          <motion.div 
-            className="text-8xl mb-8" 
-            animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }} 
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            🎂
-          </motion.div>
+      {/* Level Selector - Shows when on map view */}
+      {gameState.currentLevel <= 5 && (
+        <div className="fixed left-4 top-1/2 -translate-y-1/2 z-40 hidden lg:block">
+          <div className="space-y-3">
+            {levels.map((level) => {
+              const isCompleted = gameState.completedLevels.includes(level.id);
+              const isCurrent = gameState.currentLevel === level.id;
+              const isUnlocked = level.id <= gameState.currentLevel;
+              
+              return (
+                <motion.button
+                  key={level.id}
+                  onClick={() => isUnlocked && selectLevel(level.id)}
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                    isCompleted 
+                      ? 'bg-green-500 text-white' 
+                      : isCurrent 
+                        ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/50' 
+                        : isUnlocked 
+                          ? 'bg-white/10 text-white hover:bg-white/20' 
+                          : 'bg-gray-800 text-gray-600 cursor-not-allowed'
+                  }`}
+                  whileHover={isUnlocked ? { scale: 1.1 } : {}}
+                  whileTap={isUnlocked ? { scale: 0.95 } : {}}
+                >
+                  <level.icon className="w-5 h-5" />
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-          <h2 className="text-5xl md:text-7xl font-bold mb-8">
-            <span className="gradient-text">Happy Birthday</span><br />
-            <span className="text-white">Bijaya!</span>
-          </h2>
-
-          <motion.p 
-            className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl mx-auto" 
-            initial={{ opacity: 0 }} 
-            whileInView={{ opacity: 1 }} 
-            viewport={{ once: true }} 
-            transition={{ delay: 0.3 }}
-          >
-            May this year bring you closer to everything you dream of. Keep building. Keep creating. Keep being you.
-          </motion.p>
-
-          <motion.div 
-            className="flex flex-wrap justify-center gap-4" 
-            initial={{ opacity: 0, y: 20 }} 
-            whileInView={{ opacity: 1, y: 0 }} 
-            viewport={{ once: true }} 
-            transition={{ delay: 0.5 }}
-          >
-            <motion.button 
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-bold text-lg" 
-              whileHover={{ scale: 1.05 }} 
-              whileTap={{ scale: 0.95 }} 
-              onClick={onCelebrate}
-            >
-              <span className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                Celebrate Again!
-              </span>
-            </motion.button>
-          </motion.div>
-
-          <motion.div 
-            className="mt-16 flex justify-center gap-4" 
-            initial={{ opacity: 0 }} 
-            whileInView={{ opacity: 1 }} 
-            viewport={{ once: true }} 
-            transition={{ delay: 0.8 }}
-          >
-            {['🎉', '🎂', '🎈', '🎁', '✨', '🌟'].map((emoji, i) => (
-              <motion.span 
-                key={i} 
-                className="text-4xl" 
-                animate={{ y: [0, -20, 0] }} 
-                transition={{ duration: 2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
-              >
-                {emoji}
-              </motion.span>
-            ))}
-          </motion.div>
-        </motion.div>
+      {/* Game Content */}
+      <div className="pt-20">
+        <AnimatePresence mode="wait">
+          {gameState.currentLevel === 1 && (
+            <Level1Start key="level1" onComplete={() => completeLevel(1)} />
+          )}
+          {gameState.currentLevel === 2 && (
+            <Level2Stats key="level2" onComplete={() => completeLevel(2)} />
+          )}
+          {gameState.currentLevel === 3 && (
+            <Level3Wishes key="level3" onComplete={() => completeLevel(3)} />
+          )}
+          {gameState.currentLevel === 4 && (
+            <Level4Timeline key="level4" onComplete={() => completeLevel(4)} />
+          )}
+          {gameState.currentLevel === 5 && (
+            <Level5Final key="level5" onRestart={restart} />
+          )}
+        </AnimatePresence>
       </div>
-    </section>
-  );
-};
 
-export default function BirthdayPage() {
-  const triggerConfetti = useCallback(() => {
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-    const interval = setInterval(function() {
-      const timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) return clearInterval(interval);
-      const particleCount = 50 * (timeLeft / duration);
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#7c3aed', '#f472b6', '#fbbf24', '#22d3ee', '#ffffff'] });
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#7c3aed', '#f472b6', '#fbbf24', '#22d3ee', '#ffffff'] });
-    }, 250);
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(triggerConfetti, 1500);
-    return () => clearTimeout(timer);
-  }, [triggerConfetti]);
-
-  return (
-    <main className="relative min-h-screen bg-[#1a0b2e]">
-      <StarField />
-      <FloatingParticles />
-      <Hero onCelebrate={triggerConfetti} />
-      <Stats />
-      <Wishes />
-      <Timeline />
-      <FinalMessage onCelebrate={triggerConfetti} />
       <footer className="py-8 text-center text-white/40 text-sm">
-        <p>Made with ❤️ for Bijaya</p>
+        <p>Made with ❤️ for Bijaya | Level {gameState.currentLevel} of 5</p>
       </footer>
     </main>
   );
