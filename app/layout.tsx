@@ -1,9 +1,22 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Happy Birthday Bijaya! 🎉",
-  description: "A celebration of Bijaya - builder, dreamer, creator",
+  title: "Happy Birthday Bijaya! 🎮",
+  description: "An interactive birthday adventure game with 5 levels of celebration!",
+  keywords: ["birthday", "game", "celebration", "interactive"],
+  authors: [{ name: "NepClaw" }],
+  openGraph: {
+    title: "Happy Birthday Bijaya! 🎂",
+    description: "Play through 5 levels of birthday fun!",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0f0518",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
