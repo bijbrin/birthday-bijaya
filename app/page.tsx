@@ -20,21 +20,55 @@ const useNameFromParams = () => {
   return name;
 };
 
-// Floating particles that move all over the screen
+// Floating particles that come from outside like fireworks
 const FloatingParticles = () => {
-  const [particles, setParticles] = useState<Array<{ id: number; emoji: string; x: number; y: number; size: number; duration: number; delay: number }>>([]);
+  const [particles, setParticles] = useState<Array<{ id: number; emoji: string; startX: number; startY: number; endX: number; endY: number; size: number; duration: number; delay: number }>>([]);
 
   useEffect(() => {
-    const emojis = ['🎈', '🎉', '✨', '🎂', '🎁', '💝', '🌟', '🎊', '🕯️', '🎀'];
-    const newParticles = Array.from({ length: 25 }, (_, i) => ({
-      id: i,
-      emoji: emojis[i % emojis.length],
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 20 + Math.random() * 30,
-      duration: 15 + Math.random() * 20,
-      delay: Math.random() * 10,
-    }));
+    const emojis = ['🎈', '🎉', '✨', '🎂', '🎁', '💝', '🌟', '🎊', '🕯️', '🎀', '🎵', '💖'];
+    const newParticles = Array.from({ length: 30 }, (_, i) => {
+      // Start from outside the screen
+      const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+      let startX, startY, endX, endY;
+      
+      switch(side) {
+        case 0: // top
+          startX = Math.random() * 100;
+          startY = -20;
+          endX = Math.random() * 100;
+          endY = 120;
+          break;
+        case 1: // right
+          startX = 120;
+          startY = Math.random() * 100;
+          endX = -20;
+          endY = Math.random() * 100;
+          break;
+        case 2: // bottom
+          startX = Math.random() * 100;
+          startY = 120;
+          endX = Math.random() * 100;
+          endY = -20;
+          break;
+        default: // left
+          startX = -20;
+          startY = Math.random() * 100;
+          endX = 120;
+          endY = Math.random() * 100;
+      }
+      
+      return {
+        id: i,
+        emoji: emojis[i % emojis.length],
+        startX,
+        startY,
+        endX,
+        endY,
+        size: 24 + Math.random() * 32,
+        duration: 8 + Math.random() * 12,
+        delay: Math.random() * 5,
+      };
+    });
     setParticles(newParticles);
   }, []);
 
@@ -46,15 +80,15 @@ const FloatingParticles = () => {
           className="absolute"
           style={{
             fontSize: p.size,
-            left: `${p.x}%`,
-            top: `${p.y}%`,
+            left: `${p.startX}%`,
+            top: `${p.startY}%`,
           }}
           animate={{
-            x: [0, Math.random() * 200 - 100, Math.random() * 200 - 100, 0],
-            y: [0, Math.random() * 200 - 100, Math.random() * 200 - 100, 0],
-            rotate: [0, 360, -360, 0],
-            scale: [1, 1.2, 0.8, 1],
-            opacity: [0.3, 0.8, 0.5, 0.3],
+            x: [`0vw`, `${p.endX - p.startX}vw`],
+            y: [`0vh`, `${p.endY - p.startY}vh`],
+            rotate: [0, 360, -360, 720],
+            scale: [0.5, 1.2, 1, 0.8, 1.1],
+            opacity: [0, 1, 1, 1, 0],
           }}
           transition={{
             duration: p.duration,
@@ -152,32 +186,55 @@ const ThankYouMessage = ({ name, onPlayGame }: { name: string; onPlayGame: () =>
         {/* Big CTA Button */}
         <motion.button
           onClick={onPlayGame}
-          className="w-full py-6 rounded-2xl font-black text-2xl text-white relative overflow-hidden group mb-6"
+          className="w-full py-8 rounded-3xl font-black text-3xl text-white relative overflow-hidden group mb-8"
           style={{
-            background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%)',
-            boxShadow: '0 10px 40px rgba(236, 72, 153, 0.4), 0 0 60px rgba(139, 92, 246, 0.2)',
+            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #ec4899 50%, #8b5cf6 75%, #6366f1 100%)',
+            boxShadow: '0 0 60px rgba(236, 72, 153, 0.5), 0 0 100px rgba(139, 92, 246, 0.3), inset 0 0 30px rgba(255,255,255,0.1)',
+            border: '2px solid rgba(255,255,255,0.2)',
           }}
           whileHover={{ 
-            scale: 1.03,
-            boxShadow: '0 15px 50px rgba(236, 72, 153, 0.5), 0 0 80px rgba(139, 92, 246, 0.3)',
+            scale: 1.05,
+            boxShadow: '0 0 80px rgba(236, 72, 153, 0.6), 0 0 120px rgba(139, 92, 246, 0.4), inset 0 0 40px rgba(255,255,255,0.2)',
           }}
-          whileTap={{ scale: 0.97 }}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ y: 30, opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
         >
-          {/* Shine effect */}
+          {/* Animated background */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-            initial={{ x: '-100%' }}
-            animate={{ x: '200%' }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            className="absolute inset-0 opacity-50"
+            style={{
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+            }}
+            animate={{ x: ['-200%', '200%'] }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
           />
           
-          <span className="relative z-10 flex items-center justify-center gap-3">
-            <span className="text-3xl">🎮</span>
-            <span className="tracking-wide">PLAY TO WIN!</span>
-            <span className="text-3xl">🏆</span>
+          {/* Pulse rings */}
+          <motion.div
+            className="absolute inset-0 rounded-3xl"
+            style={{ border: '2px solid rgba(255,255,255,0.3)' }}
+            animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          
+          <span className="relative z-10 flex items-center justify-center gap-4">
+            <motion.span 
+              className="text-4xl"
+              animate={{ rotate: [0, -10, 10, 0] }}
+              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+            >
+              🎮
+            </motion.span>
+            <span className="tracking-wider drop-shadow-lg">PLAY TO WIN!</span>
+            <motion.span 
+              className="text-4xl"
+              animate={{ y: [0, -5, 5, 0] }}
+              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2, delay: 0.25 }}
+            >
+              🏆
+            </motion.span>
           </span>
         </motion.button>
 
