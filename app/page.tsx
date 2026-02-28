@@ -1,7 +1,24 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Get name from URL params
+const useNameFromParams = () => {
+  const [name, setName] = useState('');
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const nameParam = params.get('name');
+      if (nameParam) {
+        setName(decodeURIComponent(nameParam));
+      }
+    }
+  }, []);
+  
+  return name;
+};
 
 // Floating particles that move all over the screen
 const FloatingParticles = () => {
@@ -54,7 +71,7 @@ const FloatingParticles = () => {
 };
 
 // Thank You Message
-const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
+const ThankYouMessage = ({ name, onPlayGame }: { name: string; onPlayGame: () => void }) => {
   return (
     <motion.div 
       className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative"
@@ -80,7 +97,7 @@ const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
           transition={{ delay: 0.2 }}
         >
           <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
-            Thank You!
+            Thank You{name ? ` ${name}` : ''}!
           </span>
         </motion.h1>
 
@@ -111,7 +128,7 @@ const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
           <p className="text-white/80 italic text-lg">
             "Grateful for another year of life and for amazing people like you in it."
           </p>
-          <p className="text-white/50 mt-4 font-medium">— Bijaya</p>
+          <p className="text-white/50 mt-4 font-medium">— {name || 'Bijaya'}</p>
         </motion.div>
 
         <motion.button
@@ -496,8 +513,9 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
 };
 
 // Main App
-export default function BirthdayThanks() {
+function BirthdayThanksContent() {
   const [showGame, setShowGame] = useState(false);
+  const name = useNameFromParams();
 
   return (
     <main className="min-h-screen relative overflow-hidden">
@@ -518,11 +536,23 @@ export default function BirthdayThanks() {
 
       <AnimatePresence mode="wait">
         {!showGame ? (
-          <ThankYouMessage key="thanks" onPlayGame={() => setShowGame(true)} />
+          <ThankYouMessage key="thanks" name={name} onPlayGame={() => setShowGame(true)} />
         ) : (
           <FlappyGame key="game" onBack={() => setShowGame(false)} />
         )}
       </AnimatePresence>
     </main>
+  );
+}
+
+export default function BirthdayThanks() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950">
+        <div className="text-white/60">Loading...</div>
+      </div>
+    }>
+      <BirthdayThanksContent />
+    </Suspense>
   );
 }
