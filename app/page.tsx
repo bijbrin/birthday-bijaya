@@ -1,54 +1,81 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Thank You Message Component
+// Floating particles that move all over the screen
+const FloatingParticles = () => {
+  const [particles, setParticles] = useState<Array<{ id: number; emoji: string; x: number; y: number; size: number; duration: number; delay: number }>>([]);
+
+  useEffect(() => {
+    const emojis = ['🎈', '🎉', '✨', '🎂', '🎁', '💝', '🌟', '🎊', '🕯️', '🎀'];
+    const newParticles = Array.from({ length: 25 }, (_, i) => ({
+      id: i,
+      emoji: emojis[i % emojis.length],
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 20 + Math.random() * 30,
+      duration: 15 + Math.random() * 20,
+      delay: Math.random() * 10,
+    }));
+    setParticles(newParticles);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute"
+          style={{
+            fontSize: p.size,
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+          }}
+          animate={{
+            x: [0, Math.random() * 200 - 100, Math.random() * 200 - 100, 0],
+            y: [0, Math.random() * 200 - 100, Math.random() * 200 - 100, 0],
+            rotate: [0, 360, -360, 0],
+            scale: [1, 1.2, 0.8, 1],
+            opacity: [0.3, 0.8, 0.5, 0.3],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
+          {p.emoji}
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// Thank You Message
 const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
   return (
     <motion.div 
-      className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-4xl opacity-20"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              rotate: [0, 10, -10, 0],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          >
-            {['🎈', '🎉', '✨', '🎂', '🎁', '💝', '🌟', '🎊'][i % 8]}
-          </motion.div>
-        ))}
-      </div>
+      <FloatingParticles />
 
       <div className="relative z-10 text-center max-w-md">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', duration: 0.8 }}
-          className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 flex items-center justify-center shadow-2xl"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', duration: 1 }}
+          className="w-28 h-28 mx-auto mb-8 rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 flex items-center justify-center shadow-2xl shadow-purple-500/50"
         >
           <span className="text-5xl">💝</span>
         </motion.div>
 
         <motion.h1 
-          className="text-4xl font-black mb-4"
-          initial={{ y: 20, opacity: 0 }}
+          className="text-5xl md:text-6xl font-black mb-4"
+          initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
@@ -58,7 +85,7 @@ const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
         </motion.h1>
 
         <motion.p 
-          className="text-lg text-white/80 mb-2"
+          className="text-xl text-white/90 mb-2"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -67,7 +94,7 @@ const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
         </motion.p>
 
         <motion.p 
-          className="text-white/60 mb-8 text-sm"
+          className="text-white/60 mb-10"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -76,28 +103,28 @@ const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
         </motion.p>
 
         <motion.div
-          className="glass rounded-2xl p-6 mb-8"
+          className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-10 border border-white/20"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <p className="text-white/70 text-sm italic">
+          <p className="text-white/80 italic text-lg">
             "Grateful for another year of life and for amazing people like you in it."
           </p>
-          <p className="text-white/50 text-xs mt-3">— Bijaya</p>
+          <p className="text-white/50 mt-4 font-medium">— Bijaya</p>
         </motion.div>
 
         <motion.button
           onClick={onPlayGame}
-          className="w-full py-4 rounded-2xl font-bold text-lg text-white relative overflow-hidden group"
+          className="w-full py-5 rounded-2xl font-bold text-xl text-white relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <span className="relative z-10 flex items-center justify-center gap-2">
+          <span className="relative z-10 flex items-center justify-center gap-3">
             <span>🎮</span>
             Play Birthday Bird
             <span>🐦</span>
@@ -105,7 +132,7 @@ const ThankYouMessage = ({ onPlayGame }: { onPlayGame: () => void }) => {
         </motion.button>
 
         <motion.p 
-          className="text-white/40 text-xs mt-4"
+          className="text-white/40 text-sm mt-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
@@ -124,12 +151,14 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
 
-  // Game constants
-  const GRAVITY = 0.25;
-  const JUMP = -6;
-  const PIPE_SPEED = 2;
-  const PIPE_GAP = 140;
-  const PIPE_WIDTH = 50;
+  // Game refs (for use in animation loop)
+  const gameStateRef = useRef(gameState);
+  const scoreRef = useRef(score);
+  const highScoreRef = useRef(highScore);
+
+  useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { highScoreRef.current = highScore; }, [highScore]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -138,75 +167,132 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size for mobile
-    canvas.width = Math.min(window.innerWidth - 32, 400);
-    canvas.height = 500;
+    // Mobile-friendly canvas size
+    const canvasWidth = Math.min(window.innerWidth - 32, 400);
+    const canvasHeight = 500;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 
+    // Game variables
     let animationId: number;
-    let bird = { x: 50, y: canvas.height / 2, velocity: 0, radius: 15 };
-    let pipes: { x: number; topHeight: number; passed: boolean }[] = [];
     let frameCount = 0;
-    let currentScore = 0;
+    
+    // Bird
+    const bird = {
+      x: canvasWidth * 0.2,
+      y: canvasHeight / 2,
+      radius: 12,
+      velocity: 0,
+      gravity: 0.4,
+      jump: -7,
+    };
+
+    // Pipes
+    let pipes: Array<{ x: number; topHeight: number; passed: boolean }> = [];
+    const pipeWidth = 50;
+    const pipeGap = 130;
+    const pipeSpeed = 2.5;
 
     const resetGame = () => {
-      bird = { x: 50, y: canvas.height / 2, velocity: 0, radius: 15 };
+      bird.y = canvasHeight / 2;
+      bird.velocity = 0;
       pipes = [];
       frameCount = 0;
-      currentScore = 0;
       setScore(0);
     };
 
     const jump = () => {
-      if (gameState === 'waiting') {
+      const state = gameStateRef.current;
+      if (state === 'waiting') {
         setGameState('playing');
-        bird.velocity = JUMP;
-      } else if (gameState === 'playing') {
-        bird.velocity = JUMP;
-      } else if (gameState === 'gameover') {
+        bird.velocity = bird.jump;
+      } else if (state === 'playing') {
+        bird.velocity = bird.jump;
+      } else if (state === 'gameover') {
         setGameState('waiting');
         resetGame();
       }
     };
 
-    const handleInput = () => jump();
-    canvas.addEventListener('click', handleInput);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(); });
+    // Event listeners
+    const handleClick = () => jump();
+    const handleTouch = (e: TouchEvent) => {
+      e.preventDefault();
+      jump();
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        e.preventDefault();
+        jump();
+      }
+    };
+
+    canvas.addEventListener('click', handleClick);
+    canvas.addEventListener('touchstart', handleTouch, { passive: false });
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Draw functions
+    const drawBackground = () => {
+      // Sky
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+      gradient.addColorStop(0, '#1e1b4b');
+      gradient.addColorStop(0.5, '#312e81');
+      gradient.addColorStop(1, '#4338ca');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      // Moving clouds
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      const cloudOffset = (frameCount * 0.5) % (canvasWidth + 100);
+      for (let i = 0; i < 3; i++) {
+        const x = ((cloudOffset + i * 150) % (canvasWidth + 100)) - 50;
+        const y = 60 + i * 40;
+        ctx.beginPath();
+        ctx.arc(x, y, 25, 0, Math.PI * 2);
+        ctx.arc(x + 20, y - 10, 30, 0, Math.PI * 2);
+        ctx.arc(x + 45, y, 25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
 
     const drawBird = () => {
       ctx.save();
       ctx.translate(bird.x, bird.y);
-      ctx.rotate(Math.min(Math.max(bird.velocity * 0.05, -0.5), 0.5));
       
-      // Bird body
+      // Rotation based on velocity
+      const rotation = Math.min(Math.max(bird.velocity * 0.05, -0.5), 0.5);
+      ctx.rotate(rotation);
+
+      // Body
       ctx.beginPath();
       ctx.arc(0, 0, bird.radius, 0, Math.PI * 2);
       ctx.fillStyle = '#fbbf24';
       ctx.fill();
-      ctx.strokeStyle = '#f59e0b';
+      ctx.strokeStyle = '#d97706';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       // Eye
       ctx.beginPath();
-      ctx.arc(5, -5, 4, 0, Math.PI * 2);
+      ctx.arc(4, -4, 4, 0, Math.PI * 2);
       ctx.fillStyle = 'white';
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(6, -5, 2, 0, Math.PI * 2);
-      ctx.fillStyle = 'black';
+      ctx.arc(5, -4, 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#1f2937';
       ctx.fill();
 
       // Beak
       ctx.beginPath();
-      ctx.moveTo(8, 2);
-      ctx.lineTo(18, 6);
-      ctx.lineTo(8, 10);
+      ctx.moveTo(6, 2);
+      ctx.lineTo(14, 5);
+      ctx.lineTo(6, 8);
       ctx.fillStyle = '#f97316';
       ctx.fill();
 
       // Wing
       ctx.beginPath();
-      ctx.ellipse(-5, 5, 8, 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(-4, 4, 7, 4, 0, 0, Math.PI * 2);
       ctx.fillStyle = '#f59e0b';
       ctx.fill();
 
@@ -214,145 +300,150 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     };
 
     const drawPipe = (pipe: typeof pipes[0]) => {
-      const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + PIPE_WIDTH, 0);
-      gradient.addColorStop(0, '#22c55e');
-      gradient.addColorStop(0.5, '#4ade80');
-      gradient.addColorStop(1, '#16a34a');
+      const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
+      gradient.addColorStop(0, '#16a34a');
+      gradient.addColorStop(0.5, '#22c55e');
+      gradient.addColorStop(1, '#15803d');
 
       // Top pipe
       ctx.fillStyle = gradient;
-      ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
-      ctx.strokeStyle = '#15803d';
+      ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+      ctx.strokeStyle = '#14532d';
       ctx.lineWidth = 2;
-      ctx.strokeRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+      ctx.strokeRect(pipe.x, 0, pipeWidth, pipe.topHeight);
 
-      // Top pipe cap
-      ctx.fillRect(pipe.x - 3, pipe.topHeight - 20, PIPE_WIDTH + 6, 20);
-      ctx.strokeRect(pipe.x - 3, pipe.topHeight - 20, PIPE_WIDTH + 6, 20);
+      // Top cap
+      ctx.fillRect(pipe.x - 4, pipe.topHeight - 20, pipeWidth + 8, 20);
+      ctx.strokeRect(pipe.x - 4, pipe.topHeight - 20, pipeWidth + 8, 20);
 
       // Bottom pipe
-      const bottomY = pipe.topHeight + PIPE_GAP;
-      ctx.fillRect(pipe.x, bottomY, PIPE_WIDTH, canvas.height - bottomY);
-      ctx.strokeRect(pipe.x, bottomY, PIPE_WIDTH, canvas.height - bottomY);
+      const bottomY = pipe.topHeight + pipeGap;
+      ctx.fillRect(pipe.x, bottomY, pipeWidth, canvasHeight - bottomY);
+      ctx.strokeRect(pipe.x, bottomY, pipeWidth, canvasHeight - bottomY);
 
-      // Bottom pipe cap
-      ctx.fillRect(pipe.x - 3, bottomY, PIPE_WIDTH + 6, 20);
-      ctx.strokeRect(pipe.x - 3, bottomY, PIPE_WIDTH + 6, 20);
-    };
-
-    const drawBackground = () => {
-      // Sky gradient
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, '#1e1b4b');
-      gradient.addColorStop(1, '#312e81');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Clouds
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-      for (let i = 0; i < 5; i++) {
-        const x = ((frameCount * 0.5) + i * 100) % (canvas.width + 100) - 50;
-        const y = 50 + i * 30;
-        ctx.beginPath();
-        ctx.arc(x, y, 30, 0, Math.PI * 2);
-        ctx.arc(x + 25, y - 10, 35, 0, Math.PI * 2);
-        ctx.arc(x + 50, y, 30, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      // Bottom cap
+      ctx.fillRect(pipe.x - 4, bottomY, pipeWidth + 8, 20);
+      ctx.strokeRect(pipe.x - 4, bottomY, pipeWidth + 8, 20);
     };
 
     const checkCollision = (pipe: typeof pipes[0]) => {
-      const inPipeX = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + PIPE_WIDTH;
-      const inPipeY = bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > pipe.topHeight + PIPE_GAP;
+      const inPipeX = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipeWidth;
+      const inPipeY = bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > pipe.topHeight + pipeGap;
       return inPipeX && inPipeY;
     };
 
+    // Game loop
     const gameLoop = () => {
       drawBackground();
 
-      if (gameState === 'playing' || gameState === 'waiting') {
+      const state = gameStateRef.current;
+
+      if (state === 'waiting') {
+        // Draw bird stationary
+        drawBird();
+        
+        // Draw "Tap to Start"
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 28px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('TAP TO START', canvasWidth / 2, canvasHeight / 2);
+        ctx.font = '16px system-ui, sans-serif';
+        ctx.fillStyle = '#a78bfa';
+        ctx.fillText('Tap screen to flap', canvasWidth / 2, canvasHeight / 2 + 35);
+      }
+      else if (state === 'playing') {
         // Update bird
-        bird.velocity += GRAVITY;
+        bird.velocity += bird.gravity;
         bird.y += bird.velocity;
 
         // Floor/ceiling collision
-        if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
+        if (bird.y + bird.radius >= canvasHeight - 5 || bird.y - bird.radius <= 5) {
           setGameState('gameover');
-          if (currentScore > highScore) setHighScore(currentScore);
+          if (scoreRef.current > highScoreRef.current) {
+            setHighScore(scoreRef.current);
+          }
+        }
+
+        // Spawn pipes
+        frameCount++;
+        if (frameCount % 100 === 0) {
+          const minHeight = 60;
+          const maxHeight = canvasHeight - pipeGap - minHeight - 40;
+          pipes.push({
+            x: canvasWidth,
+            topHeight: Math.floor(Math.random() * (maxHeight - minHeight) + minHeight),
+            passed: false,
+          });
         }
 
         // Update pipes
-        if (gameState === 'playing') {
-          frameCount++;
+        pipes = pipes.filter((pipe) => {
+          pipe.x -= pipeSpeed;
 
-          // Spawn pipes
-          if (frameCount % 120 === 0) {
-            const minHeight = 50;
-            const maxHeight = canvas.height - PIPE_GAP - minHeight;
-            pipes.push({
-              x: canvas.width,
-              topHeight: Math.random() * (maxHeight - minHeight) + minHeight,
-              passed: false,
-            });
+          // Collision
+          if (checkCollision(pipe)) {
+            setGameState('gameover');
+            if (scoreRef.current > highScoreRef.current) {
+              setHighScore(scoreRef.current);
+            }
           }
 
-          // Move pipes and check collisions
-          pipes = pipes.filter((pipe) => {
-            pipe.x -= PIPE_SPEED;
+          // Score
+          if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
+            pipe.passed = true;
+            setScore((s) => s + 1);
+          }
 
-            // Check collision
-            if (checkCollision(pipe)) {
-              setGameState('gameover');
-              if (currentScore > highScore) setHighScore(currentScore);
-            }
-
-            // Score point
-            if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
-              pipe.passed = true;
-              currentScore++;
-              setScore(currentScore);
-            }
-
-            return pipe.x > -PIPE_WIDTH;
-          });
-        }
+          return pipe.x > -pipeWidth;
+        });
 
         // Draw pipes
         pipes.forEach(drawPipe);
 
         // Draw bird
         drawBird();
-      }
 
-      // Draw UI
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 32px Inter, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(score.toString(), canvas.width / 2, 50);
-
-      if (gameState === 'waiting') {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Draw score
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 24px Inter, sans-serif';
-        ctx.fillText('TAP TO START', canvas.width / 2, canvas.height / 2);
+        ctx.font = 'bold 48px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 10;
+        ctx.fillText(scoreRef.current.toString(), canvasWidth / 2, 60);
+        ctx.shadowBlur = 0;
       }
+      else if (state === 'gameover') {
+        // Draw final frame
+        pipes.forEach(drawPipe);
+        drawBird();
 
-      if (gameState === 'gameover') {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+        // Overlay
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        // Game Over text
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 36px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Game Over!', canvasWidth / 2, canvasHeight / 2 - 60);
+
+        // Score
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 32px Inter, sans-serif';
-        ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 40);
+        ctx.font = '24px system-ui, sans-serif';
+        ctx.fillText(`Score: ${scoreRef.current}`, canvasWidth / 2, canvasHeight / 2);
         
-        ctx.font = '20px Inter, sans-serif';
-        ctx.fillText(`Score: ${currentScore}`, canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText(`Best: ${Math.max(highScore, currentScore)}`, canvas.width / 2, canvas.height / 2 + 40);
-        
-        ctx.font = '16px Inter, sans-serif';
+        // High score
+        const best = Math.max(highScoreRef.current, scoreRef.current);
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '20px system-ui, sans-serif';
+        ctx.fillText(`Best: ${best}`, canvasWidth / 2, canvasHeight / 2 + 35);
+
+        // Restart instruction
         ctx.fillStyle = '#a78bfa';
-        ctx.fillText('Tap to restart', canvas.width / 2, canvas.height / 2 + 80);
+        ctx.font = '18px system-ui, sans-serif';
+        ctx.fillText('Tap to play again', canvasWidth / 2, canvasHeight / 2 + 80);
       }
 
       animationId = requestAnimationFrame(gameLoop);
@@ -362,14 +453,15 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
 
     return () => {
       cancelAnimationFrame(animationId);
-      canvas.removeEventListener('click', handleInput);
-      canvas.removeEventListener('touchstart', handleInput);
+      canvas.removeEventListener('click', handleClick);
+      canvas.removeEventListener('touchstart', handleTouch);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameState, highScore]);
+  }, []);
 
   return (
     <motion.div 
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-8"
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
@@ -377,7 +469,7 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         <div className="flex items-center justify-between mb-4">
           <button 
             onClick={onBack}
-            className="px-4 py-2 rounded-xl glass text-white text-sm font-medium hover:bg-white/10 transition-colors"
+            className="px-4 py-2 rounded-xl bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors"
           >
             ← Back
           </button>
@@ -386,15 +478,16 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
           </div>
         </div>
 
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20"
+        >
           <canvas
             ref={canvasRef}
             className="block touch-none cursor-pointer"
-            style={{ background: '#1e1b4b' }}
+            style={{ background: '#1e1b4b', maxWidth: '100%' }}
           />
         </div>
 
-        <p className="text-center text-white/40 text-sm mt-4">
+        <p className="text-center text-white/50 text-sm mt-4">
           Tap screen to flap • Avoid green pipes
         </p>
       </div>
@@ -408,14 +501,17 @@ export default function BirthdayThanks() {
 
   return (
     <main className="min-h-screen relative overflow-hidden">
-      {/* Gradient Background */}
+      {/* Background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950"></div>
-        <div className="absolute inset-0 opacity-30"
+        <div 
+          className="absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
-                              radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.2) 0%, transparent 50%),
-                              radial-gradient(circle at 40% 20%, rgba(99, 102, 241, 0.2) 0%, transparent 50%)`
+            backgroundImage: `
+              radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.4) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 40% 20%, rgba(99, 102, 241, 0.3) 0%, transparent 50%)
+            `
           }}
         />
       </div>
