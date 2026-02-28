@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Happy Birthday Bijaya! 🎮",
-  description: "An interactive birthday adventure game with 5 levels of celebration!",
-  keywords: ["birthday", "game", "celebration", "interactive"],
-  authors: [{ name: "NepClaw" }],
+  title: "Thank You So Much! 💝",
+  description: "A heartfelt thank you for all the birthday wishes! Play a fun game inside.",
+  keywords: ["thank you", "birthday", "gratitude", "appreciation"],
+  authors: [{ name: "Bijaya" }],
   openGraph: {
-    title: "Happy Birthday Bijaya! 🎂",
-    description: "Play through 5 levels of birthday fun!",
+    title: "Thank You So Much! 💝",
+    description: "Your birthday wishes made my day special!",
     type: "website",
   },
 };
