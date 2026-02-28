@@ -120,42 +120,84 @@ const ThankYouMessage = ({ name, onPlayGame }: { name: string; onPlayGame: () =>
         </motion.p>
 
         <motion.div
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-10 border border-white/20"
+          className="relative rounded-2xl p-8 mb-10 overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15))',
+            border: '2px solid rgba(255, 255, 255, 0.1)',
+          }}
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <p className="text-white/80 italic text-lg">
+          {/* Corner decorations */}
+          <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-purple-400/60 rounded-tl" />
+          <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-pink-400/60 rounded-tr" />
+          <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-pink-400/60 rounded-bl" />
+          <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-purple-400/60 rounded-br" />
+          
+          {/* Quote icon */}
+          <div className="text-3xl mb-3">💬</div>
+          
+          <p className="text-white/85 italic text-base leading-relaxed">
             "Grateful for another year of life and for amazing people like you in it."
           </p>
-          <p className="text-white/50 mt-4 font-medium">— {name || 'Bijaya'}</p>
+          
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-transparent via-purple-400/50 to-purple-400/50" />
+            <p className="text-white/50 text-sm font-medium">{name || 'Bijaya'}</p>
+            <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-transparent via-pink-400/50 to-pink-400/50" />
+          </div>
         </motion.div>
 
+        {/* Big CTA Button */}
         <motion.button
           onClick={onPlayGame}
-          className="w-full py-5 rounded-2xl font-bold text-xl text-white relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
-          whileHover={{ scale: 1.03 }}
+          className="w-full py-6 rounded-2xl font-black text-2xl text-white relative overflow-hidden group mb-6"
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%)',
+            boxShadow: '0 10px 40px rgba(236, 72, 153, 0.4), 0 0 60px rgba(139, 92, 246, 0.2)',
+          }}
+          whileHover={{ 
+            scale: 1.03,
+            boxShadow: '0 15px 50px rgba(236, 72, 153, 0.5), 0 0 80px rgba(139, 92, 246, 0.3)',
+          }}
           whileTap={{ scale: 0.97 }}
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
+          {/* Shine effect */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+            initial={{ x: '-100%' }}
+            animate={{ x: '200%' }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          />
+          
           <span className="relative z-10 flex items-center justify-center gap-3">
-            <span>🎮</span>
-            Play Birthday Bird
-            <span>🐦</span>
+            <span className="text-3xl">🎮</span>
+            <span className="tracking-wide">PLAY TO WIN!</span>
+            <span className="text-3xl">🏆</span>
           </span>
         </motion.button>
 
-        <motion.p 
-          className="text-white/40 text-sm mt-6"
+        {/* Fun instruction pills */}
+        <motion.div 
+          className="flex flex-wrap justify-center gap-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          Tap to flap • Avoid pipes
-        </motion.p>
+          <span className="px-4 py-2 rounded-full bg-white/10 text-white/70 text-sm flex items-center gap-2">
+            <span>👆</span> Tap to flap
+          </span>
+          <span className="px-4 py-2 rounded-full bg-white/10 text-white/70 text-sm flex items-center gap-2">
+            <span>🌲</span> Avoid pipes
+          </span>
+          <span className="px-4 py-2 rounded-full bg-white/10 text-white/70 text-sm flex items-center gap-2">
+            <span>⭐</span> Beat high score
+          </span>
+        </motion.div>
       </div>
     </motion.div>
   );
