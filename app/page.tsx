@@ -14,11 +14,83 @@ const useNameFromParams = () => {
   return name;
 };
 
-// Thank You Screen - Dark Mesh Gradient + Glassmorphism
+// Generate random emoji positions
+const generateEmojis = () => {
+  const emojiList = ['✨', '🎉', '💖', '⭐', '🎈', '🎊', '🎂', '🎁', '🎵', '🌸', '💫', '🎆', '🔥', '💝', '🎇'];
+  return [...Array(30)].map((_, i) => ({
+    id: i,
+    emoji: emojiList[Math.floor(Math.random() * emojiList.length)],
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: 15 + Math.random() * 35,
+    blur: Math.random() * 2,
+    duration: 4 + Math.random() * 4,
+    delay: Math.random() * 3,
+    rotate: Math.random() * 360
+  }));
+};
+
+// Firework component
+const Firework = ({ x, y, onDone }: { x: number; y: number; onDone: () => void }) => {
+  const colors = ['#ff007a', '#7000ff', '#00f2ff', '#ffd700', '#ff6b6b'];
+  
+  return (
+    <motion.div
+      className="absolute pointer-events-none"
+      style={{ left: x, top: y }}
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 0 }}
+      transition={{ duration: 1.5 }}
+      onAnimationComplete={onDone}
+    >
+      {[...Array(12)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 rounded-full"
+          style={{
+            backgroundColor: colors[i % colors.length],
+            left: 0,
+            top: 0
+          }}
+          initial={{ x: 0, y: 0, scale: 1 }}
+          animate={{
+            x: Math.cos((i * 30 * Math.PI) / 180) * 80,
+            y: Math.sin((i * 30 * Math.PI) / 180) * 80,
+            scale: 0
+          }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+        />
+      ))}
+    </motion.div>
+  );
+};
+
+// Thank You Screen
 const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) => {
+  const [emojis] = useState(generateEmojis);
+  const [fireworks, setFireworks] = useState<{ id: number; x: number; y: number }[]>([]);
+  const fwIdRef = useRef(0);
+
+  // Auto fireworks every few seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const id = fwIdRef.current++;
+      setFireworks(prev => [...prev, { 
+        id, 
+        x: 20 + Math.random() * 60, 
+        y: 10 + Math.random() * 50 
+      }]);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const removeFirework = (id: number) => {
+    setFireworks(prev => prev.filter(fw => fw.id !== id));
+  };
+
   return (
     <motion.div 
-      className="min-h-screen w-full flex items-center justify-center p-5 relative overflow-hidden"
+      className="fixed inset-0 w-full h-full overflow-hidden flex items-center justify-center"
       style={{ 
         background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
       }}
@@ -36,62 +108,69 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Floating Emojis with Depth */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        {[...Array(25)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute"
-            style={{ 
-              left: `${Math.random() * 100}%`, 
-              top: `${Math.random() * 100}%`,
-              fontSize: `${10 + Math.random() * 25}px`,
-              opacity: 0.3 + Math.random() * 0.4,
-              filter: `blur(${Math.random() * 3}px)`
-            }}
-            animate={{ 
-              y: [0, -(50 + Math.random() * 100), 0], 
-              rotate: [0, Math.random() * 360, 0]
-            }}
-            transition={{ 
-              duration: 4 + Math.random() * 4, 
-              repeat: Infinity, 
-              ease: 'easeInOut',
-              delay: Math.random() * 3
-            }}
-          >
-            {['✨', '🎉', '💖', '⭐', '🎈', '🎊', '🎂', '🎁', '🎵', '🌸'][i % 10]}
-          </motion.div>
-        ))}
-      </div>
+      {/* Fireworks */}
+      {fireworks.map(fw => (
+        <Firework 
+          key={fw.id} 
+          x={fw.x} 
+          y={fw.y} 
+          onDone={() => removeFirework(fw.id)} 
+        />
+      ))}
 
-      {/* Glass Card - Centered, no scroll, fixed height */}
+      {/* Floating Emojis - Absolute positioned */}
+      {emojis.map((e) => (
+        <motion.div
+          key={e.id}
+          className="absolute pointer-events-none z-0"
+          style={{ 
+            left: `${e.left}%`, 
+            top: `${e.top}%`,
+            fontSize: `${e.size}px`,
+            filter: `blur(${e.blur}px)`,
+            textShadow: '0 0 10px rgba(255,255,255,0.3)'
+          }}
+          animate={{ 
+            y: [0, -60, 0], 
+            rotate: [0, e.rotate, 0],
+            opacity: [0.4, 0.8, 0.4]
+          }}
+          transition={{ 
+            duration: e.duration, 
+            repeat: Infinity, 
+            ease: 'easeInOut',
+            delay: e.delay
+          }}
+        >
+          {e.emoji}
+        </motion.div>
+      ))}
+
+      {/* Glass Card - True Center */}
       <motion.div
-        className="relative z-10 w-full max-w-sm text-center flex flex-col justify-center -mt-16"
+        className="relative z-10 w-11/12 max-w-sm"
         style={{
-          background: 'rgba(255, 255, 255, 0.05)',
+          background: 'rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '40px',
-          padding: '24px 20px',
-          boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
-          maxHeight: '90vh'
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          borderRadius: '32px',
+          padding: '28px 20px',
+          boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
         }}
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.175, 0.885, 0.32, 1.275] }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
       >
         {/* Title */}
         <motion.h1 
-          className="text-5xl font-extrabold mb-2"
+          className="text-4xl sm:text-5xl font-black mb-2 text-center"
           style={{
-            background: 'linear-gradient(to bottom, #fff, #bbb)',
+            background: 'linear-gradient(to bottom, #fff 0%, #ccc 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
-            letterSpacing: '-1px',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
+            letterSpacing: '-1px'
           }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -102,10 +181,10 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Subtitle */}
         <motion.p 
-          className="text-lg mb-4"
-          style={{ opacity: 0.8 }}
+          className="text-base text-center mb-3"
+          style={{ color: 'rgba(255,255,255,0.8)' }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.8 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
           For all the birthday wishes 🎂
@@ -117,10 +196,10 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.25, type: 'spring' }}
-            className="mb-4"
+            className="mb-4 text-center"
           >
             <span 
-              className="text-2xl font-bold px-6 py-2 rounded-full"
+              className="inline-block text-xl font-bold px-5 py-2 rounded-full"
               style={{
                 background: 'linear-gradient(45deg, #ff007a, #7000ff)',
                 color: 'white'
@@ -133,7 +212,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Quote */}
         <motion.p 
-          className="text-base italic mb-6"
+          className="text-sm italic mb-6 text-center"
           style={{ color: '#00f2ff' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -142,17 +221,17 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
           "Grateful for another year and amazing people like you."
         </motion.p>
 
-        {/* Juicy Play Button - BIGGER */}
+        {/* BIG Play Button */}
         <motion.button
           onClick={onPlay}
-          className="relative cursor-pointer mt-2"
+          className="w-full relative cursor-pointer"
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
           <motion.div
-            className="px-12 py-6 rounded-full font-extrabold text-xl uppercase tracking-widest text-white flex items-center gap-4"
+            className="w-full py-5 rounded-full font-black text-lg uppercase tracking-widest text-white flex items-center justify-center gap-3"
             style={{
               background: 'linear-gradient(45deg, #ff007a, #7000ff)',
               boxShadow: '0 10px 40px rgba(255, 0, 122, 0.5)'
@@ -160,7 +239,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
             animate={{
               boxShadow: [
                 '0 0 0 0 rgba(255, 0, 122, 0.7)',
-                '0 0 0 25px rgba(255, 0, 122, 0)',
+                '0 0 0 20px rgba(255, 0, 122, 0)',
                 '0 0 0 0 rgba(255, 0, 122, 0)'
               ]
             }}
@@ -170,15 +249,15 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
               ease: 'easeOut'
             }}
           >
-            <span className="text-3xl">🎮</span>
+            <span className="text-2xl">🎮</span>
             <span>Play to Win!</span>
-            <span className="text-3xl">🏆</span>
+            <span className="text-2xl">🏆</span>
           </motion.div>
         </motion.button>
 
         {/* Signature */}
         <motion.div
-          className="mt-4 text-lg"
+          className="mt-5 text-lg text-center"
           style={{
             fontFamily: 'cursive, Georgia, serif',
             color: '#fff'
@@ -192,10 +271,10 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Instructions */}
         <motion.div 
-          className="mt-2 text-xs"
-          style={{ opacity: 0.6 }}
+          className="mt-2 text-xs text-center"
+          style={{ color: 'rgba(255,255,255,0.5)' }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.6 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
           👆 Tap 🌲 Dodge ⭐ Score
@@ -220,7 +299,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
   useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
   useEffect(() => { scoreRef.current = score; }, [score]);
 
-  // Load bird image
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -528,7 +606,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     };
   }, [highScore, birdLoaded]);
 
-  // Reset game when component unmounts
   useEffect(() => {
     return () => {
       setGameState('waiting');
@@ -590,7 +667,7 @@ function AppContent() {
 export default function App() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      <div className="fixed inset-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
         <span className="text-white text-2xl">Loading... ✨</span>
       </div>
     }>
