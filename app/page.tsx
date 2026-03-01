@@ -250,7 +250,7 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => { birdImgRef.current = img; };
-    img.src = 'https://i.imgur.com/8RJH7Xy.png';
+    img.src = '/bird.jpg';
   }, []);
 
   useEffect(() => {
