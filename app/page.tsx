@@ -6,234 +6,162 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Get name from URL params
 const useNameFromParams = () => {
   const [name, setName] = useState('');
-  
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const nameParam = params.get('name');
-      if (nameParam) {
-        setName(decodeURIComponent(nameParam));
-      }
+      if (nameParam) setName(decodeURIComponent(nameParam));
     }
   }, []);
-  
   return name;
 };
 
-// Fireworks particles from edges
-const FireworksParticles = () => {
-  const [particles, setParticles] = useState<Array<{ id: number; emoji: string; startX: number; startY: number; endX: number; endY: number; size: number; duration: number; delay: number }>>([]);
-
+// Floating emojis from edges
+const FloatingEmojis = () => {
+  const [items, setItems] = useState<any[]>([]);
   useEffect(() => {
-    const emojis = ['🎈', '🎉', '✨', '🎂', '🎁', '💝', '🌟', '🎊', '🕯️', '🎀', '🎵', '💖', '🎆', '🎇'];
-    const newParticles = Array.from({ length: 40 }, (_, i) => {
-      const side = Math.floor(Math.random() * 4);
-      let startX, startY, endX, endY;
-      
-      switch(side) {
-        case 0: startX = Math.random() * 100; startY = -15; endX = Math.random() * 100; endY = 115; break;
-        case 1: startX = 115; startY = Math.random() * 100; endX = -15; endY = Math.random() * 100; break;
-        case 2: startX = Math.random() * 100; startY = 115; endX = Math.random() * 100; endY = -15; break;
-        default: startX = -15; startY = Math.random() * 100; endX = 115; endY = Math.random() * 100;
-      }
-      
-      return {
-        id: i,
-        emoji: emojis[i % emojis.length],
-        startX, startY, endX, endY,
-        size: 28 + Math.random() * 36,
-        duration: 10 + Math.random() * 15,
-        delay: Math.random() * 8,
-      };
-    });
-    setParticles(newParticles);
+    const emojis = ['🎈', '🎉', '✨', '🎂', '🎁', '💝', '🌟', '🎊', '🕯️', '🎀'];
+    setItems(Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      emoji: emojis[i % emojis.length],
+      side: Math.floor(Math.random() * 4),
+      size: 28 + Math.random() * 24,
+      delay: Math.random() * 8,
+    })));
   }, []);
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute"
-          style={{ fontSize: p.size, left: `${p.startX}%`, top: `${p.startY}%` }}
-          animate={{
-            x: [`0vw`, `${p.endX - p.startX}vw`],
-            y: [`0vh`, `${p.endY - p.startY}vh`],
-            rotate: [0, 360, -360, 720],
-            scale: [0.3, 1.3, 1, 0.9, 1.2],
-            opacity: [0, 1, 1, 0.8, 0],
-          }}
-          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
-        >
-          {p.emoji}
-        </motion.div>
-      ))}
+      {items.map((p) => {
+        const startPos = [
+          { x: p.side === 0 ? Math.random() * 100 : p.side === 1 ? 110 : p.side === 2 ? Math.random() * 100 : -10, y: p.side === 0 ? -10 : p.side === 1 ? Math.random() * 100 : p.side === 2 ? 110 : Math.random() * 100 },
+        ][0];
+        return (
+          <motion.div
+            key={p.id}
+            className="absolute"
+            style={{ fontSize: p.size, left: `${startPos.x}%`, top: `${startPos.y}%` }}
+            animate={{
+              x: [0, (Math.random() - 0.5) * 150, (Math.random() - 0.5) * 100],
+              y: [0, (Math.random() - 0.5) * 150, (Math.random() - 0.5) * 100],
+              rotate: [0, 360, -180, 540],
+              scale: [0.5, 1.2, 1, 0.8],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{ duration: 12 + Math.random() * 10, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
+          >
+            {p.emoji}
+          </motion.div>
+        );
+      })}
     </div>
   );
 };
 
-// Thank You Screen - Full Screen Vibrant Design
+// Thank You Screen - Juicy Duolingo Style
 const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) => {
+  const [pressed, setPressed] = useState(false);
+  
   const quotes = [
-    "Grateful for another year of life and amazing people like you!",
-    "Your wishes made my birthday truly special!",
-    "Thank you for being part of my journey!",
-    "Another year older, but feeling loved and blessed!",
+    "Your wishes made my day!",
+    "Thanks for being awesome!",
+    "You\'re the best!",
+    "Grateful for you!",
   ];
-  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+  const quote = quotes[Math.floor(Math.random() * quotes.length)];
 
   return (
     <motion.div 
       className="min-h-screen w-full flex flex-col items-center justify-center px-6 relative overflow-hidden"
+      style={{ background: 'linear-gradient(180deg, #58cc02 0%, #43b000 100%)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
     >
-      <FireworksParticles />
-
-      <div className="relative z-10 w-full max-w-lg text-center">
-        {/* Big Heart Icon */}
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', duration: 1.2, bounce: 0.5 }}
-          className="w-32 h-32 mx-auto mb-6 rounded-full flex items-center justify-center"
-          style={{
-            background: 'linear-gradient(135deg, #ec4899, #8b5cf6, #6366f1)',
-            boxShadow: '0 0 60px rgba(236, 72, 153, 0.5), 0 0 100px rgba(139, 92, 246, 0.3)',
-          }}
+      <FloatingEmojis />
+      
+      {/* White card container */}
+      <motion.div 
+        className="relative z-10 w-full max-w-md"
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', bounce: 0.4 }}
+      >
+        {/* Main Card */}
+        <div 
+          className="bg-white rounded-3xl p-8 shadow-2xl"
+          style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 0 0 4px rgba(255,255,255,0.2)' }}
         >
-          <motion.span 
-            className="text-6xl"
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
-            💝
-          </motion.span>
-        </motion.div>
-
-        {/* Main Title */}
-        <motion.h1 
-          className="text-6xl md:text-7xl font-black mb-4"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, type: 'spring' }}
-        >
-          <span className="bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 bg-clip-text text-transparent drop-shadow-lg">
-            Thank You
-          </span>
-          <br />
-          {name && (
-            <span className="text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">
-              {name}!
-            </span>
-          )}
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p 
-          className="text-xl md:text-2xl text-white/90 mb-3 font-light"
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          For the birthday wishes! 🎂
-        </motion.p>
-
-        {/* Quote Card */}
-        <motion.div
-          className="my-8 p-6 rounded-3xl relative"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-          }}
-          initial={{ y: 40, opacity: 0, scale: 0.9 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, type: 'spring' }}
-        >
-          <div className="absolute -top-3 left-6 text-4xl">💬</div>
-          <p className="text-white/90 text-lg italic leading-relaxed pt-2">"{randomQuote}"</p>
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-pink-400/50"></div>
-            <span className="text-pink-300 font-medium">— {name || 'Bijaya'}</span>
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-purple-400/50"></div>
-          </div>
-        </motion.div>
-
-        {/* HUGE Play Button */}
-        <motion.button
-          onClick={onPlay}
-          className="w-full py-7 px-8 rounded-3xl font-black text-2xl md:text-3xl text-white relative overflow-hidden group"
-          style={{
-            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 20%, #ec4899 50%, #8b5cf6 80%, #6366f1 100%)',
-            boxShadow: '0 0 0 4px rgba(255,255,255,0.1), 0 20px 60px rgba(236,72,153,0.5), 0 0 100px rgba(139,92,246,0.3)',
-          }}
-          whileHover={{ 
-            scale: 1.05,
-            boxShadow: '0 0 0 6px rgba(255,255,255,0.2), 0 30px 80px rgba(236,72,153,0.6), 0 0 120px rgba(139,92,246,0.4)',
-          }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-        >
-          {/* Shine sweep */}
+          {/* Big Heart */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-            animate={{ x: ['-200%', '200%'] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1.5 }}
-          />
-          
-          {/* Pulse rings */}
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="absolute inset-0 rounded-3xl border-2 border-white/30"
-              animate={{ scale: [1, 1.15 + i * 0.05], opacity: [0.6 - i * 0.2, 0] }}
-              transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }}
-            />
-          ))}
-          
-          <span className="relative z-10 flex items-center justify-center gap-4">
-            <motion.span animate={{ rotate: [-10, 10, -10] }} transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}>🎮</motion.span>
-            <span className="tracking-widest uppercase">Play to Win!</span>
-            <motion.span animate={{ y: [0, -8, 0] }} transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.5 }}>🏆</motion.span>
-          </span>
-        </motion.button>
+            className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #ff4b4b, #ff6b6b)' }}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <span className="text-5xl">💝</span>
+          </motion.div>
 
-        {/* Instructions */}
-        <motion.div 
-          className="flex flex-wrap justify-center gap-3 mt-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          {[
-            { icon: '👆', text: 'Tap to fly' },
-            { icon: '🌲', text: 'Dodge pipes' },
-            { icon: '⭐', text: 'Score high' },
-          ].map((item, i) => (
-            <motion.span 
-              key={i}
-              className="px-4 py-2 rounded-full text-sm flex items-center gap-2"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.8 + i * 0.1 }}
+          {/* Title */}
+          <h1 className="text-4xl font-black text-center text-gray-800 mb-2">
+            Thank You
+            {name && <span className="text-green-500">{name}!</span>}
+          </h1>
+          
+          <p className="text-gray-500 text-center text-lg mb-6">{quote}</p>
+
+          {/* Quote bubble */}
+          <div className="bg-gray-100 rounded-2xl p-4 mb-8 relative">
+            <span className="absolute -top-2 left-6 text-2xl">💬</span>
+            <p className="text-gray-600 italic text-center">"Another year older, feeling blessed!"</p>
+            <p className="text-gray-400 text-sm text-center mt-2">— {name || 'Bijaya'}</p>
+          </div>
+
+          {/* JUICY Button */}
+          <motion.button
+            onClick={() => { setPressed(true); setTimeout(onPlay, 150); }}
+            className="w-full relative"
+            whileTap={{ scale: 0.95 }}
+          >
+            {/* Button shadow (creates 3D effect) */}
+            <div 
+              className="absolute inset-0 rounded-2xl transition-all duration-100"
+              style={{ 
+                background: '#1899d6',
+                transform: pressed ? 'translateY(0)' : 'translateY(6px)',
+              }}
+            />
+            
+            {/* Button face */}
+            <div 
+              className="relative rounded-2xl py-5 px-8 font-black text-xl text-white transition-all duration-100 flex items-center justify-center gap-3"
+              style={{ 
+                background: pressed 
+                  ? '#1899d6' 
+                  : 'linear-gradient(180deg, #1cb0f6 0%, #1899d6 100%)',
+                transform: pressed ? 'translateY(6px)' : 'translateY(0)',
+                borderBottom: pressed ? 'none' : 'none',
+                boxShadow: pressed ? 'none' : 'inset 0 -4px 0 rgba(0,0,0,0.2)',
+              }}
             >
-              <span>{item.icon}</span>
-              <span className="text-white/80">{item.text}</span>
-            </motion.span>
-          ))}
-        </motion.div>
-      </div>
+              <span>🎮</span>
+              <span className="uppercase tracking-wider">Play to Win!</span>
+              <span>🏆</span>
+            </div>
+          </motion.button>
+
+          {/* Instructions */}
+          <div className="flex justify-center gap-2 mt-6">
+            {['👆 Tap', '🌲 Dodge', '⭐ Score'].map((t, i) => (
+              <span key={i} className="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600">{t}</span>
+            ))}
+          </div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 };
 
-// Flappy Bird Game with Emoji Bird
+// Flappy Game with Juicy feel
 const FlappyGame = ({ onBack }: { onBack: () => void }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<'waiting' | 'playing' | 'gameover'>('waiting');
@@ -254,303 +182,190 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const canvasWidth = Math.min(window.innerWidth - 32, 420);
-    const canvasHeight = Math.min(window.innerHeight - 200, 550);
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
+    const w = Math.min(window.innerWidth - 32, 400);
+    const h = Math.min(window.innerHeight - 180, 500);
+    canvas.width = w;
+    canvas.height = h;
 
-    let animationId: number;
-    let frameCount = 0;
+    let animId: number;
+    let frame = 0;
     
-    const bird = { x: canvasWidth * 0.25, y: canvasHeight / 2, radius: 18, velocity: 0, gravity: 0.35, jump: -6.5, emoji: '🐦' };
-    let pipes: Array<{ x: number; topHeight: number; passed: boolean }> = [];
-    const pipeWidth = 55;
-    const pipeGap = 140;
-    const pipeSpeed = 2.8;
+    const bird = { x: w * 0.25, y: h / 2, r: 16, vy: 0, g: 0.35, j: -6.5 };
+    let pipes: any[] = [];
+    const pw = 55, gap = 140, speed = 2.8;
 
-    const resetGame = () => {
-      bird.y = canvasHeight / 2;
-      bird.velocity = 0;
-      pipes = [];
-      frameCount = 0;
-      setScore(0);
-    };
-
+    const reset = () => { bird.y = h / 2; bird.vy = 0; pipes = []; frame = 0; setScore(0); };
+    
     const jump = () => {
-      const state = gameStateRef.current;
-      if (state === 'waiting') {
-        setGameState('playing');
-        bird.velocity = bird.jump;
-      } else if (state === 'playing') {
-        bird.velocity = bird.jump;
-      } else if (state === 'gameover') {
-        setGameState('waiting');
-        resetGame();
-      }
+      const s = gameStateRef.current;
+      if (s === 'waiting') { setGameState('playing'); bird.vy = bird.j; }
+      else if (s === 'playing') bird.vy = bird.j;
+      else if (s === 'gameover') { setGameState('waiting'); reset(); }
     };
 
-    const handleClick = () => jump();
-    const handleTouch = (e: TouchEvent) => { e.preventDefault(); jump(); };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); }
-    };
+    canvas.addEventListener('click', jump);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
 
-    canvas.addEventListener('click', handleClick);
-    canvas.addEventListener('touchstart', handleTouch, { passive: false });
-    window.addEventListener('keydown', handleKeyDown);
-
-    const drawBackground = () => {
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-      gradient.addColorStop(0, '#1e1b4b');
-      gradient.addColorStop(0.5, '#4338ca');
-      gradient.addColorStop(1, '#6366f1');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      // Stars
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      for (let i = 0; i < 30; i++) {
-        const x = ((frameCount * 0.3) + i * 50) % (canvasWidth + 20) - 10;
-        const y = (i * 37) % canvasHeight;
-        ctx.beginPath();
-        ctx.arc(x, y, Math.random() * 2 + 1, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    const draw = () => {
+      // Sky gradient
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#4facfe');
+      grad.addColorStop(1, '#00f2fe');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
 
       // Clouds
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-      for (let i = 0; i < 4; i++) {
-        const x = ((frameCount * 0.4) + i * 120) % (canvasWidth + 150) - 50;
-        const y = 40 + i * 50;
-        ctx.beginPath();
-        ctx.arc(x, y, 30, 0, Math.PI * 2);
-        ctx.arc(x + 25, y - 8, 35, 0, Math.PI * 2);
-        ctx.arc(x + 50, y, 30, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      for (let i = 0; i < 3; i++) {
+        const x = ((frame * 0.3) + i * 130) % (w + 100) - 50;
+        ctx.beginPath(); ctx.arc(x, 60 + i * 45, 25, 0, Math.PI * 2);
+        ctx.arc(x + 20, 50 + i * 45, 32, 0, Math.PI * 2);
+        ctx.arc(x + 45, 60 + i * 45, 25, 0, Math.PI * 2);
         ctx.fill();
       }
-    };
 
-    const drawBird = () => {
-      ctx.save();
-      ctx.translate(bird.x, bird.y);
-      const rotation = Math.min(Math.max(bird.velocity * 0.04, -0.4), 0.4);
-      ctx.rotate(rotation);
-      
-      // Glow
-      ctx.shadowColor = 'rgba(251, 191, 36, 0.6)';
-      ctx.shadowBlur = 20;
-      
-      // Bird emoji
-      ctx.font = '32px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(bird.emoji, 0, 2);
-      
-      ctx.restore();
-    };
+      const s = gameStateRef.current;
 
-    const drawPipe = (pipe: typeof pipes[0]) => {
-      const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
-      gradient.addColorStop(0, '#16a34a');
-      gradient.addColorStop(0.5, '#4ade80');
-      gradient.addColorStop(1, '#15803d');
-
-      // Top pipe
-      ctx.fillStyle = gradient;
-      ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-      ctx.strokeStyle = '#14532d';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-      ctx.fillRect(pipe.x - 5, pipe.topHeight - 25, pipeWidth + 10, 25);
-      ctx.strokeRect(pipe.x - 5, pipe.topHeight - 25, pipeWidth + 10, 25);
-
-      // Bottom pipe
-      const bottomY = pipe.topHeight + pipeGap;
-      ctx.fillRect(pipe.x, bottomY, pipeWidth, canvasHeight - bottomY);
-      ctx.strokeRect(pipe.x, bottomY, pipeWidth, canvasHeight - bottomY);
-      ctx.fillRect(pipe.x - 5, bottomY, pipeWidth + 10, 25);
-      ctx.strokeRect(pipe.x - 5, bottomY, pipeWidth + 10, 25);
-    };
-
-    const checkCollision = (pipe: typeof pipes[0]) => {
-      const inPipeX = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipeWidth;
-      const inPipeY = bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > pipe.topHeight + pipeGap;
-      return inPipeX && inPipeY;
-    };
-
-    const gameLoop = () => {
-      drawBackground();
-      const state = gameStateRef.current;
-
-      if (state === 'waiting') {
-        drawBird();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 28px system-ui';
+      if (s === 'waiting') {
+        // Bird
+        ctx.font = '28px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('👆 TAP TO START', canvasWidth / 2, canvasHeight / 2);
-        ctx.font = '18px system-ui';
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillText('Help the bird fly!', canvasWidth / 2, canvasHeight / 2 + 40);
+        ctx.fillText('🐦', bird.x, bird.y + 8);
+        
+        // Instructions
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 26px system-ui';
+        ctx.fillText('👆 TAP TO FLY', w / 2, h / 2);
       }
-      else if (state === 'playing') {
-        bird.velocity += bird.gravity;
-        bird.y += bird.velocity;
+      else if (s === 'playing') {
+        bird.vy += bird.g;
+        bird.y += bird.vy;
 
-        if (bird.y + bird.radius >= canvasHeight - 10 || bird.y - bird.radius <= 10) {
+        if (bird.y + bird.r > h - 10 || bird.y - bird.r < 10) {
           setGameState('gameover');
           if (scoreRef.current > highScoreRef.current) setHighScore(scoreRef.current);
         }
 
-        frameCount++;
-        if (frameCount % 90 === 0) {
-          const minHeight = 70;
-          const maxHeight = canvasHeight - pipeGap - minHeight - 50;
-          pipes.push({ x: canvasWidth, topHeight: Math.floor(Math.random() * (maxHeight - minHeight) + minHeight), passed: false });
+        frame++;
+        if (frame % 90 === 0) {
+          const min = 70, max = h - gap - min - 50;
+          pipes.push({ x: w, th: Math.floor(Math.random() * (max - min) + min), p: false });
         }
 
-        pipes = pipes.filter((pipe) => {
-          pipe.x -= pipeSpeed;
-          if (checkCollision(pipe)) {
+        pipes = pipes.filter((p) => {
+          p.x -= speed;
+          
+          // Draw pipe
+          ctx.fillStyle = '#78c800';
+          ctx.fillRect(p.x, 0, pw, p.th);
+          ctx.fillStyle = '#58aa00';
+          ctx.fillRect(p.x - 4, p.th - 25, pw + 8, 25);
+          
+          ctx.fillStyle = '#78c800';
+          ctx.fillRect(p.x, p.th + gap, pw, h - p.th - gap);
+          ctx.fillStyle = '#58aa00';
+          ctx.fillRect(p.x - 4, p.th + gap, pw + 8, 25);
+
+          // Collision
+          const hit = bird.x + bird.r > p.x && bird.x - bird.r < p.x + pw &&
+                     (bird.y - bird.r < p.th || bird.y + bird.r > p.th + gap);
+          if (hit) {
             setGameState('gameover');
             if (scoreRef.current > highScoreRef.current) setHighScore(scoreRef.current);
           }
-          if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
-            pipe.passed = true;
-            setScore((s) => s + 1);
-          }
-          return pipe.x > -pipeWidth;
+          
+          if (!p.p && p.x + pw < bird.x) { p.p = true; setScore(v => v + 1); }
+          return p.x > -pw;
         });
 
-        pipes.forEach(drawPipe);
-        drawBird();
+        // Bird
+        ctx.font = '28px Arial';
+        ctx.fillText('🐦', bird.x, bird.y + 8);
 
         // Score
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 52px system-ui';
-        ctx.textAlign = 'center';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 10;
-        ctx.fillText(scoreRef.current.toString(), canvasWidth / 2, 70);
+        ctx.font = 'bold 48px system-ui';
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 8;
+        ctx.fillText(scoreRef.current.toString(), w / 2, 60);
         ctx.shadowBlur = 0;
       }
-      else if (state === 'gameover') {
-        pipes.forEach(drawPipe);
-        drawBird();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      else {
+        pipes.forEach((p) => {
+          ctx.fillStyle = '#78c800';
+          ctx.fillRect(p.x, 0, pw, p.th);
+          ctx.fillRect(p.x, p.th + gap, pw, h - p.th - gap);
+        });
+        ctx.font = '28px Arial';
+        ctx.fillText('🐦', bird.x, bird.y + 8);
         
-        ctx.fillStyle = '#ef4444';
-        ctx.font = 'bold 40px system-ui';
-        ctx.textAlign = 'center';
-        ctx.fillText('💥 Game Over!', canvasWidth / 2, canvasHeight / 2 - 70);
+        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+        ctx.fillRect(0, 0, w, h);
+        
+        ctx.fillStyle = '#ff4b4b';
+        ctx.font = 'bold 36px system-ui';
+        ctx.fillText('💥 Game Over!', w / 2, h / 2 - 60);
         
         ctx.fillStyle = 'white';
         ctx.font = '28px system-ui';
-        ctx.fillText(`Score: ${scoreRef.current}`, canvasWidth / 2, canvasHeight / 2);
+        ctx.fillText(`Score: ${scoreRef.current}`, w / 2, h / 2);
         
-        const best = Math.max(highScoreRef.current, scoreRef.current);
-        ctx.fillStyle = '#fbbf24';
+        ctx.fillStyle = '#ffc800';
         ctx.font = '22px system-ui';
-        ctx.fillText(`🏆 Best: ${best}`, canvasWidth / 2, canvasHeight / 2 + 40);
-
-        ctx.fillStyle = '#a78bfa';
+        ctx.fillText(`🏆 Best: ${Math.max(highScoreRef.current, scoreRef.current)}`, w / 2, h / 2 + 40);
+        
+        ctx.fillStyle = '#1cb0f6';
         ctx.font = 'bold 20px system-ui';
-        ctx.fillText('👆 Tap to play again', canvasWidth / 2, canvasHeight / 2 + 90);
+        ctx.fillText('👆 Tap to retry', w / 2, h / 2 + 90);
       }
 
-      animationId = requestAnimationFrame(gameLoop);
+      animId = requestAnimationFrame(draw);
     };
 
-    gameLoop();
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      canvas.removeEventListener('click', handleClick);
-      canvas.removeEventListener('touchstart', handleTouch);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    draw();
+    return () => { cancelAnimationFrame(animId); canvas.removeEventListener('click', jump); canvas.removeEventListener('touchstart', jump); };
   }, []);
 
   return (
-    <motion.div 
-      className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
+    <motion.div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-4" style={{ background: 'linear-gradient(180deg, #58cc02 0%, #43b000 100%)' }}>
       <div className="w-full max-w-md">
         <div className="flex items-center justify-between mb-3">
-          <button 
-            onClick={onBack}
-            className="px-4 py-2 rounded-full text-white text-sm font-medium"
-            style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}
-          >
-            ← Back
-          </button>
-          <div className="text-right">
-            <p className="text-white/60 text-sm">🏆 Best: {highScore}</p>
-          </div>
+          <button onClick={onBack} className="px-4 py-2 bg-white/20 rounded-full text-white font-bold hover:bg-white/30 transition">← Back</button>
+          <span className="text-white font-bold">🏆 {highScore}</span>
         </div>
-
-        <div 
-          className="relative rounded-2xl overflow-hidden w-full"
-          style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 4px rgba(255,255,255,0.1)' }}
-        >
-          <canvas
-            ref={canvasRef}
-            className="block touch-none cursor-pointer w-full"
-            style={{ background: '#1e1b4b' }}
-          />
+        
+        <div className="rounded-3xl overflow-hidden shadow-2xl border-4 border-white/30">
+          <canvas ref={canvasRef} className="block touch-none cursor-pointer" style={{ background: '#4facfe' }} />
         </div>
-
-        <p className="text-center text-white/50 text-sm mt-4">
-          👆 Tap to fly • 🌲 Avoid pipes • ⭐ Score points
-        </p>
+        
+        <p className="text-center text-white/80 mt-4 font-medium">👆 Tap to fly • Dodge green pipes!</p>
       </div>
     </motion.div>
   );
 };
 
 // Main
-function BirthdayAppContent() {
+function AppContent() {
   const [showGame, setShowGame] = useState(false);
   const name = useNameFromParams();
 
   return (
-    <main className="min-h-screen w-full relative overflow-hidden">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950"></div>
-        <div className="absolute inset-0 opacity-50"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.4) 0%, transparent 40%),
-              radial-gradient(circle at 70% 80%, rgba(236, 72, 153, 0.3) 0%, transparent 40%),
-              radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 50%)
-            `
-          }}
-        />
-      </div>
-
-      <AnimatePresence mode="wait">
-        {!showGame ? (
-          <ThankYouScreen key="thanks" name={name} onPlay={() => setShowGame(true)} />
-        ) : (
-          <FlappyGame key="game" onBack={() => setShowGame(false)} />
-        )}
-      </AnimatePresence>
-    </main>
+    <AnimatePresence mode="wait">
+      {!showGame ? (
+        <ThankYouScreen key="t" name={name} onPlay={() => setShowGame(true)} />
+      ) : (
+        <FlappyGame key="g" onBack={() => setShowGame(false)} />
+      )}
+    </AnimatePresence>
   );
 }
 
-export default function BirthdayApp() {
+export default function App() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950">
-        <div className="text-white/60 text-xl">Loading... ✨</div>
-      </div>
-    }>
-      <BirthdayAppContent />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: '#58cc02' }}><span className="text-white text-2xl">Loading... 🎮</span></div>}>
+      <AppContent />
     </Suspense>
   );
-}// Cache bust: Sun Mar  1 07:09:41 AM CST 2026
+}
