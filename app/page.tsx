@@ -203,188 +203,6 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
     </motion.div>
   );
 };
-            animate={{ 
-              y: [0, -50, 0], 
-              rotate: [0, 15, -15, 0],
-              scale: [1, 1.1, 1]
-            }}
-            transition={{ 
-              duration: 6 + Math.random() * 4, 
-              repeat: Infinity, 
-              delay: i * 0.8,
-              ease: 'easeInOut'
-            }}
-          >
-            {['✨', '🎉', '💝', '🌟', '🎈', '🎂'][i]}
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Parallax Emojis - Background (small, sharp) */}
-      <div className="fixed inset-0 pointer-events-none">
-        {[...Array(8)].map((_, i) => (
-          <motion.div
-            key={`bg-${i}`}
-            className="absolute opacity-40"
-            style={{ 
-              left: `${5 + i * 12}%`, 
-              top: `${10 + (i % 4) * 20}%`,
-              fontSize: `${20 + Math.random() * 15}px`
-            }}
-            animate={{ 
-              y: [0, -20, 0], 
-              rotate: [0, 360],
-            }}
-            transition={{ 
-              duration: 10 + Math.random() * 5, 
-              repeat: Infinity, 
-              delay: i * 0.5,
-              ease: 'linear'
-            }}
-          >
-            {['✨', '🎊', '💖', '⭐', '🎁', '🎵', '🌸', '💫'][i]}
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="relative z-10 w-full max-w-lg flex flex-col justify-center flex-1">
-        {/* Glass Container */}
-        <motion.div
-          className="rounded-3xl p-8 sm:p-12 text-center"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}
-          initial={{ y: 60, opacity: 0, scale: 0.9 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', bounce: 0.3 }}
-        >
-          {/* Gradient Text Header */}
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-          >
-            <h1 
-              className="text-5xl sm:text-7xl font-black mb-4"
-              style={{
-                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF6B6B 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                textShadow: '0 0 40px rgba(255, 215, 0, 0.3)',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-                letterSpacing: '-0.02em'
-              }}
-            >
-              Thank You
-            </h1>
-            
-            {name && (
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, type: 'spring' }}
-                className="mb-4"
-              >
-                <span 
-                  className="text-3xl sm:text-4xl font-bold"
-                  style={{
-                    background: 'linear-gradient(90deg, #00dbde, #fc00ff)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}
-                >
-                  {name}!
-                </span>
-              </motion.div>
-            )}
-          </motion.div>
-
-          {/* Quote */}
-          <motion.p
-            className="text-white/90 text-lg sm:text-xl leading-relaxed mb-8 font-light"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            style={{ lineHeight: '1.7' }}
-          >
-            "Grateful for another year and<br />amazing people like you in my life."
-          </motion.p>
-
-          {/* Hero Play Button - Neon Glow */}
-          <motion.button
-            onClick={onPlay}
-            className="relative mx-auto"
-            whileTap={{ scale: 0.95 }}
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <motion.div
-              className="rounded-full px-10 py-5 font-black text-xl text-white flex items-center gap-3 cursor-pointer"
-              style={{
-                background: 'linear-gradient(45deg, #00dbde, #fc00ff)',
-                boxShadow: '0 0 30px rgba(252, 0, 255, 0.6), 0 0 60px rgba(0, 219, 222, 0.4)'
-              }}
-              animate={{
-                scale: [1, 1.08, 1],
-                boxShadow: [
-                  '0 0 20px rgba(252, 0, 255, 0.6), 0 0 40px rgba(0, 219, 222, 0.3)',
-                  '0 0 40px rgba(252, 0, 255, 0.8), 0 0 80px rgba(0, 219, 222, 0.5)',
-                  '0 0 20px rgba(252, 0, 255, 0.6), 0 0 40px rgba(0, 219, 222, 0.3)'
-                ]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut'
-              }}
-            >
-              <span className="text-2xl">🎮</span>
-              <span className="uppercase tracking-widest">Play to Win</span>
-              <span className="text-2xl">🏆</span>
-            </motion.div>
-          </motion.button>
-
-          {/* Bouncing Arrow */}
-          <motion.div
-            className="mt-6 text-white/70"
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <span className="text-2xl">👇</span>
-            <p className="text-sm mt-1 font-medium">Tap to Start</p>
-          </motion.div>
-        </motion.div>
-
-        {/* Signature - Bijaya */}
-        <motion.div
-          className="text-center mt-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <p 
-            className="text-3xl sm:text-4xl text-white/80"
-            style={{
-              fontFamily: 'cursive, Georgia, serif',
-              textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-              fontStyle: 'italic'
-            }}
-          >
-            — {name || 'Bijaya'}
-          </p>
-          <p className="text-white/50 text-sm mt-2">For all the birthday wishes 🎂</p>
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-};
 
 // Game - Fullscreen with Nepali theme
 const FlappyGame = ({ onBack }: { onBack: () => void }) => {
@@ -668,7 +486,7 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         ctx.shadowBlur = 0;
       }
       else {
-        // Game over state
+        // Game over state - Show 3 options
         pipes.forEach((p) => {
           ctx.fillStyle = '#D2691E';
           ctx.fillRect(p.x, 0, 60, p.th);
@@ -683,19 +501,24 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         ctx.fillStyle = '#ef4444';
         ctx.font = 'bold 42px system-ui';
         ctx.textAlign = 'center';
-        ctx.fillText('Game Over!', w / 2, h / 2 - 80);
+        ctx.fillText('Game Over!', w / 2, h / 2 - 120);
         
         ctx.fillStyle = 'white';
         ctx.font = '30px system-ui';
-        ctx.fillText(`Score: ${scoreRef.current}`, w / 2, h / 2 - 20);
+        ctx.fillText(`Score: ${scoreRef.current}`, w / 2, h / 2 - 60);
         
         ctx.fillStyle = '#fbbf24';
         ctx.font = '26px system-ui';
-        ctx.fillText(`Best: ${Math.max(highScore, scoreRef.current)}`, w / 2, h / 2 + 30);
+        ctx.fillText(`Best: ${Math.max(highScore, scoreRef.current)}`, w / 2, h / 2 - 20);
         
+        // Three options
         ctx.fillStyle = '#00dbde';
-        ctx.font = 'bold 24px system-ui';
-        ctx.fillText('Tap to retry', w / 2, h / 2 + 90);
+        ctx.font = 'bold 22px system-ui';
+        ctx.fillText('👆 Tap to Retry', w / 2, h / 2 + 40);
+        
+        ctx.fillStyle = '#a855f7';
+        ctx.font = '20px system-ui';
+        ctx.fillText('← Back to Thank You', w / 2, h / 2 + 80);
       }
 
       animId = requestAnimationFrame(draw);
@@ -756,7 +579,7 @@ function AppContent() {
 export default function App() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
         <span className="text-white text-2xl">Loading... ✨</span>
       </div>
     }>
@@ -764,4 +587,3 @@ export default function App() {
     </Suspense>
   );
 }
-// Build: Sun Mar  1 02:41:53 PM CST 2026
