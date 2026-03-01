@@ -21,58 +21,60 @@ const useNameFromParams = () => {
 
 // Firework component
 const Firework = ({ x, y, onDone }: { x: number; y: number; onDone: () => void }) => {
-  const colors = ['#ff007a', '#7000ff', '#00f2ff', '#ffd700', '#ff6b6b', '#22c55e', '#ff8c00', '#ff00ff'];
-  const particleCount = 16;
+  const colors = ['#ff007a', '#7000ff', '#00f2ff', '#ffd700', '#ff6b6b', '#22c55e', '#ff8c00', '#ff00ff', '#ffffff'];
+  const particleCount = 20;
   
   return (
     <motion.div
-      style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, zIndex: 5, pointerEvents: 'none' }}
+      style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, zIndex: 100, pointerEvents: 'none' }}
       initial={{ opacity: 1 }}
       animate={{ opacity: 0 }}
       transition={{ duration: 2 }}
       onAnimationComplete={onDone}
     >
-      {/* Center burst */}
+      {/* Center flash */}
       <motion.div
         style={{
           position: 'absolute',
-          width: '20px',
-          height: '20px',
+          width: '30px',
+          height: '30px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, #fff 0%, #ff007a 50%, transparent 70%)',
-          left: '-10px',
-          top: '-10px'
+          background: 'radial-gradient(circle, #fff 0%, #ff007a 30%, transparent 70%)',
+          left: '-15px',
+          top: '-15px',
+          boxShadow: '0 0 30px #ff007a'
         }}
-        initial={{ scale: 0 }}
-        animate={{ scale: [0, 2, 0] }}
-        transition={{ duration: 0.5 }}
+        initial={{ scale: 0, opacity: 1 }}
+        animate={{ scale: [0, 3, 0], opacity: [1, 0.5, 0] }}
+        transition={{ duration: 0.6 }}
       />
       
       {/* Particles */}
       {[...Array(particleCount)].map((_, i) => {
         const angle = (i * 360) / particleCount;
-        const distance = 80 + Math.random() * 60;
+        const distance = 100 + Math.random() * 80;
+        const color = colors[i % colors.length];
         return (
           <motion.div
             key={i}
             style={{
               position: 'absolute',
-              width: '4px',
-              height: '4px',
+              width: '5px',
+              height: '5px',
               borderRadius: '50%',
-              backgroundColor: colors[i % colors.length],
+              backgroundColor: color,
               left: 0,
               top: 0,
-              boxShadow: `0 0 6px ${colors[i % colors.length]}`
+              boxShadow: `0 0 10px ${color}, 0 0 20px ${color}`
             }}
-            initial={{ x: 0, y: 0, scale: 1, opacity: 1 }}
+            initial={{ x: 0, y: 0, scale: 1.5, opacity: 1 }}
             animate={{
               x: Math.cos((angle * Math.PI) / 180) * distance,
               y: Math.sin((angle * Math.PI) / 180) * distance,
               scale: 0,
               opacity: 0
             }}
-            transition={{ duration: 1.5, ease: 'easeOut' }}
+            transition={{ duration: 1.8, ease: 'easeOut' }}
           />
         );
       })}
@@ -284,23 +286,24 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
           50% { transform: translateY(-30px) rotate(5deg); }
         }
         @keyframes circle {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          25% { transform: translate(30px, -30px) rotate(90deg); }
-          50% { transform: translate(0, -60px) rotate(180deg); }
-          75% { transform: translate(-30px, -30px) rotate(270deg); }
-          100% { transform: translate(0, 0) rotate(360deg); }
+          0% { transform: translate(0, 0); }
+          25% { transform: translate(30px, -30px); }
+          50% { transform: translate(0, -60px); }
+          75% { transform: translate(-30px, -30px); }
+          100% { transform: translate(0, 0); }
         }
         @keyframes oval {
-          0% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(40px, -20px) scale(1.1); }
-          50% { transform: translate(0, -40px) scale(1); }
-          75% { transform: translate(-40px, -20px) scale(0.9); }
-          100% { transform: translate(0, 0) scale(1); }
+          0% { transform: translate(0, 0); }
+          25% { transform: translate(40px, -20px); }
+          50% { transform: translate(0, -40px); }
+          75% { transform: translate(-40px, -20px); }
+          100% { transform: translate(0, 0); }
         }
         @keyframes spin {
-          0% { transform: rotate(0deg) scale(1); }
-          50% { transform: rotate(180deg) scale(1.2); }
-          100% { transform: rotate(360deg) scale(1); }
+          0% { transform: translate(0, 0); }
+          33% { transform: translate(25px, -35px); }
+          66% { transform: translate(-25px, -35px); }
+          100% { transform: translate(0, 0); }
         }
       `}</style>
     </div>
