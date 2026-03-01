@@ -14,8 +14,64 @@ const useNameFromParams = () => {
   return name;
 };
 
+// Firework component
+const Firework = ({ x, y, onDone }: { x: number; y: number; onDone: () => void }) => {
+  const colors = ['#ff007a', '#7000ff', '#00f2ff', '#ffd700', '#ff6b6b', '#22c55e'];
+  return (
+    <motion.div
+      style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, zIndex: 5, pointerEvents: 'none' }}
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 0 }}
+      transition={{ duration: 1.5 }}
+      onAnimationComplete={onDone}
+    >
+      {[...Array(12)].map((_, i) => (
+        <motion.div
+          key={i}
+          style={{
+            position: 'absolute',
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            backgroundColor: colors[i % colors.length],
+            left: 0,
+            top: 0
+          }}
+          initial={{ x: 0, y: 0, scale: 1 }}
+          animate={{
+            x: Math.cos((i * 30 * Math.PI) / 180) * 100,
+            y: Math.sin((i * 30 * Math.PI) / 180) * 100,
+            scale: 0
+          }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+        />
+      ))}
+    </motion.div>
+  );
+};
+
 const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) => {
-  // Generate emojis once
+  const [fireworks, setFireworks] = useState<{ id: number; x: number; y: number }[]>([]);
+  const fwIdRef = useRef(0);
+
+  // Auto fireworks every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const id = fwIdRef.current++;
+      setFireworks(prev => [...prev, { 
+        id, 
+        x: 10 + Math.random() * 80, 
+        y: 5 + Math.random() * 60 
+      }]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const removeFirework = (id: number) => {
+    setFireworks(prev => prev.filter(fw => fw.id !== id));
+  };
+
+  // Generate emojis with animation
   const [emojis] = useState(() => 
     [...Array(20)].map((_, i) => ({
       id: i,
@@ -23,7 +79,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
       left: Math.floor(Math.random() * 90) + 5,
       top: Math.floor(Math.random() * 90) + 5,
       size: Math.floor(Math.random() * 20) + 20,
-      delay: Math.random() * 2
+      delay: Math.random() * 3
     }))
   );
 
@@ -53,11 +109,22 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
             fontSize: `${e.size}px`,
             opacity: 0.6,
             animation: `float 3s ease-in-out ${e.delay}s infinite`,
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            zIndex: 1
           }}
         >
           {e.char}
         </div>
+      ))}
+
+      {/* Fireworks */}
+      {fireworks.map(fw => (
+        <Firework 
+          key={fw.id} 
+          x={fw.x} 
+          y={fw.y} 
+          onDone={() => removeFirework(fw.id)} 
+        />
       ))}
 
       {/* Center container */}
