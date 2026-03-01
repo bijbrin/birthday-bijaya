@@ -14,63 +14,167 @@ const useNameFromParams = () => {
   return name;
 };
 
-const Firework = ({ x, y, onDone }: { x: number; y: number; onDone: () => void }) => {
-  const colors = ['#ff007a', '#7000ff', '#00f2ff', '#ffd700', '#ff6b6b'];
-  return (
-    <motion.div className="absolute pointer-events-none" style={{ left: `${x}%`, top: `${y}%`, zIndex: 5 }} initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 1.5 }} onAnimationComplete={onDone}>
-      {[...Array(12)].map((_, i) => (
-        <motion.div key={i} className="absolute w-2 h-2 rounded-full" style={{ backgroundColor: colors[i % colors.length], left: 0, top: 0 }} initial={{ x: 0, y: 0, scale: 1 }} animate={{ x: Math.cos((i * 30 * Math.PI) / 180) * 80, y: Math.sin((i * 30 * Math.PI) / 180) * 80, scale: 0 }} transition={{ duration: 1, ease: 'easeOut' }} />
-      ))}
-    </motion.div>
-  );
-};
-
 const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) => {
-  const [fireworks, setFireworks] = useState<{ id: number; x: number; y: number }[]>([]);
-  const fwIdRef = useRef(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const id = fwIdRef.current++;
-      setFireworks(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 5 + Math.random() * 60 }]);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const removeFirework = (id: number) => setFireworks(prev => prev.filter(fw => fw.id !== id));
-
-  const emojis = [...Array(25)].map((_, i) => ({
-    id: i,
-    emoji: ['✨', '🎉', '💖', '⭐', '🎈', '🎊', '🎂', '🎁', '🎵', '🌸', '💫', '🎆', '🔥', '💝', '🎇'][i % 15],
-    left: Math.random() * 90 + 5,
-    top: Math.random() * 90 + 5,
-    size: 16 + Math.random() * 30,
-    duration: 3 + Math.random() * 3,
-    delay: Math.random() * 2
-  }));
+  // Generate emojis once
+  const [emojis] = useState(() => 
+    [...Array(20)].map((_, i) => ({
+      id: i,
+      char: ['✨', '🎉', '💖', '⭐', '🎈', '🎊', '🎂', '🎁', '🎵', '🌸'][i % 10],
+      left: Math.floor(Math.random() * 90) + 5,
+      top: Math.floor(Math.random() * 90) + 5,
+      size: Math.floor(Math.random() * 20) + 20,
+      delay: Math.random() * 2
+    }))
+  );
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 20% 30%, rgba(112, 0, 255, 0.4) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(255, 0, 122, 0.4) 0%, transparent 40%)', filter: 'blur(80px)' }} />
-      {fireworks.map(fw => <Firework key={fw.id} x={fw.x} y={fw.y} onDone={() => removeFirework(fw.id)} />)}
-      {emojis.map(e => <div key={e.id} className="absolute opacity-50" style={{ left: `${e.left}%`, top: `${e.top}%`, fontSize: `${e.size}px`, zIndex: 1, animation: `float ${e.duration}s ease-in-out ${e.delay}s infinite` }}>{e.emoji}</div>)}
-      <div className="absolute inset-0 flex items-center justify-center p-4" style={{ zIndex: 10 }}>
-        <motion.div className="w-full max-w-xs text-center p-6 rounded-3xl" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-          <h1 className="text-4xl font-black mb-2 text-center" style={{ background: 'linear-gradient(to bottom, #fff, #aaa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Thank You</h1>
-          {name && <p className="text-2xl font-bold mb-2 text-white">{name}!</p>}
-          <p className="text-base mb-4" style={{ color: 'rgba(255,255,255,0.8)' }}>For all the birthday wishes 🎂</p>
-          <p className="text-sm italic mb-6" style={{ color: '#00f2ff' }}>"Grateful for another year and amazing people like you."</p>
-          <button onClick={onPlay} className="w-full py-5 px-6 rounded-full text-lg font-black uppercase tracking-wider text-white cursor-pointer border-0" style={{ background: 'linear-gradient(45deg, #ff007a, #7000ff)', boxShadow: '0 10px 40px rgba(255,0,122,0.5)' }}>
-            🎮 Play to Win! 🏆
+    <div style={{
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      overflow: 'hidden',
+      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
+    }}>
+      {/* Background blur */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        background: 'radial-gradient(circle at 30% 40%, rgba(112, 0, 255, 0.5) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(255, 0, 122, 0.5) 0%, transparent 50%)',
+        filter: 'blur(60px)'
+      }} />
+
+      {/* Random floating emojis */}
+      {emojis.map(e => (
+        <div
+          key={e.id}
+          style={{
+            position: 'absolute',
+            left: `${e.left}%`,
+            top: `${e.top}%`,
+            fontSize: `${e.size}px`,
+            opacity: 0.6,
+            animation: `float 3s ease-in-out ${e.delay}s infinite`,
+            pointerEvents: 'none'
+          }}
+        >
+          {e.char}
+        </div>
+      ))}
+
+      {/* Center container */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}>
+        {/* Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          style={{
+            width: '100%',
+            maxWidth: '320px',
+            padding: '24px',
+            borderRadius: '24px',
+            textAlign: 'center',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+          }}
+        >
+          <h1 style={{
+            fontSize: '36px',
+            fontWeight: 900,
+            marginBottom: '8px',
+            background: 'linear-gradient(to bottom, #fff, #aaa)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            Thank You
+          </h1>
+
+          {name && (
+            <p style={{
+              fontSize: '24px',
+              fontWeight: 'bold',
+              color: '#fff',
+              marginBottom: '8px'
+            }}>
+              {name}!
+            </p>
+          )}
+
+          <p style={{
+            fontSize: '14px',
+            color: 'rgba(255,255,255,0.8)',
+            marginBottom: '12px'
+          }}>
+            For all the birthday wishes 🎂
+          </p>
+
+          <p style={{
+            fontSize: '13px',
+            fontStyle: 'italic',
+            color: '#00f2ff',
+            marginBottom: '20px'
+          }}>
+            "Grateful for another year and amazing people like you."
+          </p>
+
+          {/* Big Play Button */}
+          <button
+            onClick={onPlay}
+            style={{
+              width: '100%',
+              padding: '16px 24px',
+              fontSize: '18px',
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              color: 'white',
+              background: 'linear-gradient(45deg, #ff007a, #7000ff)',
+              border: 'none',
+              borderRadius: '50px',
+              cursor: 'pointer',
+              boxShadow: '0 10px 30px rgba(255,0,122,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            <span style={{ fontSize: '24px' }}>🎮</span>
+            <span>Play to Win!</span>
+            <span style={{ fontSize: '24px' }}>🏆</span>
           </button>
-          <p className="mt-4 text-xl" style={{ fontFamily: 'cursive, Georgia, serif', color: '#fff' }}>— {name || 'Bijaya'}</p>
-          <p className="mt-2 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>👆 Tap 🌲 Dodge ⭐ Score</p>
+
+          <p style={{
+            marginTop: '16px',
+            fontSize: '18px',
+            fontFamily: 'cursive, Georgia, serif',
+            color: '#fff'
+          }}>
+            — {name || 'Bijaya'}
+          </p>
+
+          <p style={{
+            marginTop: '8px',
+            fontSize: '11px',
+            color: 'rgba(255,255,255,0.5)'
+          }}>
+            👆 Tap 🌲 Dodge ⭐ Score
+          </p>
         </motion.div>
       </div>
-      <style jsx global>{`
+
+      <style>{`
         @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-30px) rotate(10deg); }
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
         }
       `}</style>
     </div>
@@ -243,10 +347,10 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
   const handleBack = () => { setGameState('waiting'); setScore(0); onBack(); };
 
   return (
-    <motion.div className="fixed inset-0 overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="absolute top-4 left-4 z-20"><button onClick={handleBack} className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white font-bold border border-white/30">← Back</button></div>
-      <div className="absolute top-4 right-4 z-20"><span className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white font-bold border border-white/30">🏆 {highScore}</span></div>
-      <canvas ref={canvasRef} className="block touch-none cursor-pointer w-full h-full" />
+    <motion.div style={{ position: 'fixed', inset: 0, overflow: 'hidden' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 20 }}><button onClick={handleBack} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>← Back</button></div>
+      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}><span style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontWeight: 'bold' }}>🏆 {highScore}</span></div>
+      <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', cursor: 'pointer' }} />
     </motion.div>
   );
 };
@@ -268,7 +372,7 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}><span className="text-white text-2xl">Loading... ✨</span></div>}>
+    <Suspense fallback={<div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}><span style={{ color: 'white', fontSize: '24px' }}>Loading... ✨</span></div>}>
       <AppContent />
     </Suspense>
   );
