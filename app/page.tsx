@@ -426,17 +426,18 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         }
 
         frame++;
+        const pipeGap = 160;
         if (frame % 100 === 0) {
-          const min = 100, gap = 160;
-          const max = h - gap - min - 100;
-          pipes.push({ x: w, th: Math.floor(Math.random() * (max - min) + min), p: false });
+          const min = 100;
+          const max = h - pipeGap - min - 100;
+          pipes.push({ x: w, th: Math.floor(Math.random() * (max - min) + min), p: false, gap: pipeGap });
         }
 
         pipes = pipes.filter((p) => {
           p.x -= 3;
           
-          // Bamboo-style pipes
           const pipeWidth = 60;
+          const gap = p.gap || 160;
           
           // Top pipe
           ctx.fillStyle = '#D2691E';
@@ -465,7 +466,7 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
           ctx.fillRect(p.x - 5, p.th + gap, pipeWidth + 10, 25);
 
           const hit = birdX + birdR > p.x && birdX - birdR < p.x + pipeWidth &&
-                     (birdY - birdR < p.th || birdY + birdR > p.th + gap);
+                     (birdY - birdR < p.th || birdY + birdR > p.th + (p.gap || 160));
           if (hit) {
             setGameState('gameover');
             if (scoreRef.current > highScore) setHighScore(scoreRef.current);
