@@ -234,7 +234,6 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 // Game - Fullscreen with Nepali theme
 const FlappyGame = ({ onBack }: { onBack: () => void }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const birdImgRef = useRef<HTMLImageElement | null>(null);
   const [gameState, setGameState] = useState<'waiting' | 'playing' | 'gameover'>('waiting');
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -244,14 +243,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
 
   useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
   useEffect(() => { scoreRef.current = score; }, [score]);
-
-  // Load bird image
-  useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => { birdImgRef.current = img; };
-    img.src = '/bird.jpg';
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -269,13 +260,16 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
 
     let animId: number;
     let frame = 0;
-    const bird = { x: window.innerWidth * 0.2, y: window.innerHeight / 2, r: 20, vy: 0, g: 0.4, j: -7 };
+    let birdY = canvas.height / 2;
+    let birdVy = 0;
+    const birdX = window.innerWidth * 0.2;
+    const birdR = 24;
     let pipes: any[] = [];
     let mountainsOffset = 0;
 
-    const reset = () => { 
-      bird.y = canvas.height / 2; 
-      bird.vy = 0; 
+    const resetGame = () => { 
+      birdY = canvas.height / 2; 
+      birdVy = 0; 
       pipes = []; 
       frame = 0; 
       setScore(0); 
@@ -283,9 +277,17 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     
     const jump = () => {
       const s = gameStateRef.current;
-      if (s === 'waiting') { setGameState('playing'); bird.vy = bird.j; }
-      else if (s === 'playing') bird.vy = bird.j;
-      else if (s === 'gameover') { setGameState('waiting'); reset(); }
+      if (s === 'waiting') { 
+        setGameState('playing'); 
+        birdVy = -7; 
+      }
+      else if (s === 'playing') {
+        birdVy = -7;
+      }
+      else if (s === 'gameover') { 
+        resetGame();
+        setGameState('waiting');
+      }
     };
 
     canvas.addEventListener('click', jump);
@@ -357,6 +359,44 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       });
     };
 
+    // Draw bird (yellow chick style)
+    const drawBird = (x: number, y: number, rotation: number) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      
+      // Yellow body
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(0, 0, birdR - 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FFA500';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Eye
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(6, -4, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Beak
+      ctx.fillStyle = '#FF8C00';
+      ctx.beginPath();
+      ctx.moveTo(10, 0);
+      ctx.lineTo(18, 4);
+      ctx.lineTo(10, 8);
+      ctx.fill();
+      
+      // Wing
+      ctx.fillStyle = '#FFA500';
+      ctx.beginPath();
+      ctx.ellipse(-4, 4, 8, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.restore();
+    };
+
     const draw = () => {
       const w = canvas.width;
       const h = canvas.height;
@@ -387,25 +427,11 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       drawMountains(mountainsOffset);
 
       // Prayer flags
-      if (frame % 300 === 0) {
-        // Add new prayer flag positions occasionally
-      }
       drawPrayerFlags(w * 0.7, h * 0.6);
       drawPrayerFlags(w * 0.3, h * 0.55);
 
       if (s === 'waiting') {
-        // Draw bird with image or fallback
-        if (birdImgRef.current) {
-          ctx.save();
-          ctx.translate(bird.x, bird.y);
-          ctx.rotate(Math.min(Math.max(bird.vy * 0.05, -0.5), 0.5));
-          ctx.drawImage(birdImgRef.current, -bird.r, -bird.r, bird.r * 2, bird.r * 2);
-          ctx.restore();
-        } else {
-          ctx.font = '40px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🇳🇵', bird.x, bird.y + 12);
-        }
+        drawBird(birdX, birdY, 0);
 
         ctx.fillStyle = 'rgba(0,0,0,0.4)';
         ctx.fillRect(0, 0, w, h);
@@ -417,11 +443,11 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         ctx.fillText('Dodge the bamboo poles!', w / 2, h / 2 + 40);
       }
       else if (s === 'playing') {
-        bird.vy += bird.g;
-        bird.y += bird.vy;
+        birdVy += 0.4;
+        birdY += birdVy;
 
-        // Ground collision
-        if (bird.y + bird.r > h - 20 || bird.y - bird.r < 0) {
+        // Ground/ceiling collision
+        if (birdY + birdR > h - 20 || birdY - birdR < 0) {
           setGameState('gameover');
           if (scoreRef.current > highScore) setHighScore(scoreRef.current);
         }
@@ -436,13 +462,12 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         pipes = pipes.filter((p) => {
           p.x -= 3;
           
-          // Bamboo-style pipes (Nepali theme)
+          // Bamboo-style pipes
           const pipeWidth = 60;
           
           // Top pipe
           ctx.fillStyle = '#D2691E';
           ctx.fillRect(p.x, 0, pipeWidth, p.th);
-          // Bamboo segments
           ctx.strokeStyle = '#8B4513';
           ctx.lineWidth = 2;
           for (let y = 10; y < p.th; y += 20) {
@@ -451,46 +476,32 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
             ctx.lineTo(p.x + pipeWidth, y);
             ctx.stroke();
           }
-          // Pipe cap
           ctx.fillStyle = '#CD853F';
           ctx.fillRect(p.x - 5, p.th - 25, pipeWidth + 10, 25);
           
           // Bottom pipe
           ctx.fillStyle = '#D2691E';
           ctx.fillRect(p.x, p.th + gap, pipeWidth, h - p.th - gap);
-          // Bamboo segments
           for (let y = p.th + gap + 10; y < h; y += 20) {
             ctx.beginPath();
             ctx.moveTo(p.x, y);
             ctx.lineTo(p.x + pipeWidth, y);
             ctx.stroke();
           }
-          // Pipe cap
           ctx.fillStyle = '#CD853F';
           ctx.fillRect(p.x - 5, p.th + gap, pipeWidth + 10, 25);
 
-          const hit = bird.x + bird.r > p.x && bird.x - bird.r < p.x + pipeWidth &&
-                     (bird.y - bird.r < p.th || bird.y + bird.r > p.th + gap);
+          const hit = birdX + birdR > p.x && birdX - birdR < p.x + pipeWidth &&
+                     (birdY - birdR < p.th || birdY + birdR > p.th + gap);
           if (hit) {
             setGameState('gameover');
             if (scoreRef.current > highScore) setHighScore(scoreRef.current);
           }
-          if (!p.p && p.x + pipeWidth < bird.x) { p.p = true; setScore(v => v + 1); }
+          if (!p.p && p.x + pipeWidth < birdX) { p.p = true; setScore(v => v + 1); }
           return p.x > -pipeWidth;
         });
 
-        // Draw bird
-        if (birdImgRef.current) {
-          ctx.save();
-          ctx.translate(bird.x, bird.y);
-          ctx.rotate(Math.min(Math.max(bird.vy * 0.05, -0.5), 0.5));
-          ctx.drawImage(birdImgRef.current, -bird.r, -bird.r, bird.r * 2, bird.r * 2);
-          ctx.restore();
-        } else {
-          ctx.font = '40px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🇳🇵', bird.x, bird.y + 12);
-        }
+        drawBird(birdX, birdY, Math.min(Math.max(birdVy * 0.05, -0.5), 0.5));
 
         // Score
         ctx.fillStyle = 'white';
@@ -502,24 +513,14 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         ctx.shadowBlur = 0;
       }
       else {
-        // Game over
+        // Game over state
         pipes.forEach((p) => {
           ctx.fillStyle = '#D2691E';
           ctx.fillRect(p.x, 0, 60, p.th);
           ctx.fillRect(p.x, p.th + 160, 60, h - p.th - 160);
         });
         
-        if (birdImgRef.current) {
-          ctx.save();
-          ctx.translate(bird.x, bird.y);
-          ctx.rotate(0.5);
-          ctx.drawImage(birdImgRef.current, -bird.r, -bird.r, bird.r * 2, bird.r * 2);
-          ctx.restore();
-        } else {
-          ctx.font = '40px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🇳🇵', bird.x, bird.y + 12);
-        }
+        drawBird(birdX, birdY, 0.5);
         
         ctx.fillStyle = 'rgba(0,0,0,0.75)';
         ctx.fillRect(0, 0, w, h);
@@ -559,7 +560,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Back button */}
       <div className="absolute top-4 left-4 z-20">
         <button 
           onClick={onBack}
@@ -569,14 +569,12 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         </button>
       </div>
 
-      {/* High score */}
       <div className="absolute top-4 right-4 z-20">
         <span className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white font-bold border border-white/30">
           🏆 {highScore}
         </span>
       </div>
 
-      {/* Fullscreen canvas */}
       <canvas 
         ref={canvasRef} 
         className="block touch-none cursor-pointer w-full h-full" 
