@@ -65,17 +65,18 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
         ))}
       </div>
 
-      {/* Glass Card - Moved up with -mt-20 */}
+      {/* Glass Card - Centered, no scroll, fixed height */}
       <motion.div
-        className="relative z-10 w-full max-w-sm text-center -mt-20"
+        className="relative z-10 w-full max-w-sm text-center flex flex-col justify-center"
         style={{
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           borderRadius: '40px',
-          padding: '32px 24px',
-          boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
+          padding: '28px 20px',
+          boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+          maxHeight: '85vh'
         }}
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
