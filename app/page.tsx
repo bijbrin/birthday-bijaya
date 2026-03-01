@@ -21,36 +21,61 @@ const useNameFromParams = () => {
 
 // Firework component
 const Firework = ({ x, y, onDone }: { x: number; y: number; onDone: () => void }) => {
-  const colors = ['#ff007a', '#7000ff', '#00f2ff', '#ffd700', '#ff6b6b', '#22c55e'];
+  const colors = ['#ff007a', '#7000ff', '#00f2ff', '#ffd700', '#ff6b6b', '#22c55e', '#ff8c00', '#ff00ff'];
+  const particleCount = 16;
+  
   return (
     <motion.div
       style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, zIndex: 5, pointerEvents: 'none' }}
       initial={{ opacity: 1 }}
       animate={{ opacity: 0 }}
-      transition={{ duration: 1.5 }}
+      transition={{ duration: 2 }}
       onAnimationComplete={onDone}
     >
-      {[...Array(12)].map((_, i) => (
-        <motion.div
-          key={i}
-          style={{
-            position: 'absolute',
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            backgroundColor: colors[i % colors.length],
-            left: 0,
-            top: 0
-          }}
-          initial={{ x: 0, y: 0, scale: 1 }}
-          animate={{
-            x: Math.cos((i * 30 * Math.PI) / 180) * 100,
-            y: Math.sin((i * 30 * Math.PI) / 180) * 100,
-            scale: 0
-          }}
-          transition={{ duration: 1, ease: 'easeOut' }}
-        />
-      ))}
+      {/* Center burst */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          width: '20px',
+          height: '20px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, #fff 0%, #ff007a 50%, transparent 70%)',
+          left: '-10px',
+          top: '-10px'
+        }}
+        initial={{ scale: 0 }}
+        animate={{ scale: [0, 2, 0] }}
+        transition={{ duration: 0.5 }}
+      />
+      
+      {/* Particles */}
+      {[...Array(particleCount)].map((_, i) => {
+        const angle = (i * 360) / particleCount;
+        const distance = 80 + Math.random() * 60;
+        return (
+          <motion.div
+            key={i}
+            style={{
+              position: 'absolute',
+              width: '4px',
+              height: '4px',
+              borderRadius: '50%',
+              backgroundColor: colors[i % colors.length],
+              left: 0,
+              top: 0,
+              boxShadow: `0 0 6px ${colors[i % colors.length]}`
+            }}
+            initial={{ x: 0, y: 0, scale: 1, opacity: 1 }}
+            animate={{
+              x: Math.cos((angle * Math.PI) / 180) * distance,
+              y: Math.sin((angle * Math.PI) / 180) * distance,
+              scale: 0,
+              opacity: 0
+            }}
+            transition={{ duration: 1.5, ease: 'easeOut' }}
+          />
+        );
+      })}
     </motion.div>
   );
 };
@@ -59,16 +84,16 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
   const [fireworks, setFireworks] = useState<{ id: number; x: number; y: number }[]>([]);
   const fwIdRef = useRef(0);
 
-  // Auto fireworks every 3 seconds
+  // Auto fireworks every 2 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       const id = fwIdRef.current++;
       setFireworks(prev => [...prev, { 
         id, 
-        x: 10 + Math.random() * 80, 
-        y: 5 + Math.random() * 60 
+        x: 5 + Math.random() * 90, 
+        y: 5 + Math.random() * 70 
       }]);
-    }, 3000);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -76,15 +101,19 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
     setFireworks(prev => prev.filter(fw => fw.id !== id));
   };
 
-  // Generate emojis with animation
+  // Generate emojis with varied circular/oval animations
   const [emojis] = useState(() => 
-    [...Array(20)].map((_, i) => ({
+    [...Array(25)].map((_, i) => ({
       id: i,
-      char: ['✨', '🎉', '💖', '⭐', '🎈', '🎊', '🎂', '🎁', '🎵', '🌸'][i % 10],
-      left: Math.floor(Math.random() * 90) + 5,
-      top: Math.floor(Math.random() * 90) + 5,
-      size: Math.floor(Math.random() * 20) + 20,
-      delay: Math.random() * 3
+      char: ['✨', '🎉', '💖', '⭐', '🎈', '🎊', '🎂', '🎁', '🎵', '🌸', '💫', '🎆', '🔥', '💝', '🎇'][i % 15],
+      left: Math.floor(Math.random() * 85) + 5,
+      top: Math.floor(Math.random() * 85) + 5,
+      size: Math.floor(Math.random() * 25) + 18,
+      // Random animation type: circle, oval, float, spin
+      animType: ['circle', 'oval', 'float', 'spin'][Math.floor(Math.random() * 4)],
+      duration: 2 + Math.random() * 4, // 2-6 seconds
+      delay: Math.random() * 2,
+      distance: 20 + Math.random() * 40 // Movement distance
     }))
   );
 
@@ -103,24 +132,30 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
         filter: 'blur(60px)'
       }} />
 
-      {/* Random floating emojis */}
-      {emojis.map(e => (
-        <div
-          key={e.id}
-          style={{
-            position: 'absolute',
-            left: `${e.left}%`,
-            top: `${e.top}%`,
-            fontSize: `${e.size}px`,
-            opacity: 0.6,
-            animation: `float 3s ease-in-out ${e.delay}s infinite`,
-            pointerEvents: 'none',
-            zIndex: 1
-          }}
-        >
-          {e.char}
-        </div>
-      ))}
+      {/* Random floating emojis with varied animations */}
+      {emojis.map(e => {
+        const animName = e.animType === 'circle' ? 'circle' : 
+                        e.animType === 'oval' ? 'oval' : 
+                        e.animType === 'spin' ? 'spin' : 'float';
+        return (
+          <div
+            key={e.id}
+            style={{
+              position: 'absolute',
+              left: `${e.left}%`,
+              top: `${e.top}%`,
+              fontSize: `${e.size}px`,
+              opacity: 0.7,
+              animation: `${animName} ${e.duration}s ease-in-out ${e.delay}s infinite`,
+              pointerEvents: 'none',
+              zIndex: 1,
+              filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.3))'
+            }}
+          >
+            {e.char}
+          </div>
+        );
+      })}
 
       {/* Fireworks */}
       {fireworks.map(fw => (
@@ -245,8 +280,27 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
       <style>{`
         @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-30px) rotate(5deg); }
+        }
+        @keyframes circle {
+          0% { transform: translate(0, 0) rotate(0deg); }
+          25% { transform: translate(30px, -30px) rotate(90deg); }
+          50% { transform: translate(0, -60px) rotate(180deg); }
+          75% { transform: translate(-30px, -30px) rotate(270deg); }
+          100% { transform: translate(0, 0) rotate(360deg); }
+        }
+        @keyframes oval {
+          0% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(40px, -20px) scale(1.1); }
+          50% { transform: translate(0, -40px) scale(1); }
+          75% { transform: translate(-40px, -20px) scale(0.9); }
+          100% { transform: translate(0, 0) scale(1); }
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg) scale(1); }
+          50% { transform: rotate(180deg) scale(1.2); }
+          100% { transform: rotate(360deg) scale(1); }
         }
       `}</style>
     </div>
