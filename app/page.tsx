@@ -67,16 +67,16 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
       {/* Glass Card - Centered, no scroll, fixed height */}
       <motion.div
-        className="relative z-10 w-full max-w-sm text-center flex flex-col justify-center"
+        className="relative z-10 w-full max-w-sm text-center flex flex-col justify-center -mt-16"
         style={{
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           borderRadius: '40px',
-          padding: '28px 20px',
+          padding: '24px 20px',
           boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
-          maxHeight: '85vh'
+          maxHeight: '90vh'
         }}
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -133,34 +133,34 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Quote */}
         <motion.p 
-          className="text-base italic mb-8"
+          className="text-base italic mb-6"
           style={{ color: '#00f2ff' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          "Grateful for another year and<br />amazing people like you."
+          "Grateful for another year and amazing people like you."
         </motion.p>
 
-        {/* Juicy Play Button */}
+        {/* Juicy Play Button - BIGGER */}
         <motion.button
           onClick={onPlay}
-          className="relative cursor-pointer"
+          className="relative cursor-pointer mt-2"
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
           <motion.div
-            className="px-8 py-4 rounded-full font-extrabold text-base uppercase tracking-widest text-white flex items-center gap-3"
+            className="px-12 py-6 rounded-full font-extrabold text-xl uppercase tracking-widest text-white flex items-center gap-4"
             style={{
               background: 'linear-gradient(45deg, #ff007a, #7000ff)',
-              boxShadow: '0 10px 30px rgba(255, 0, 122, 0.4)'
+              boxShadow: '0 10px 40px rgba(255, 0, 122, 0.5)'
             }}
             animate={{
               boxShadow: [
                 '0 0 0 0 rgba(255, 0, 122, 0.7)',
-                '0 0 0 20px rgba(255, 0, 122, 0)',
+                '0 0 0 25px rgba(255, 0, 122, 0)',
                 '0 0 0 0 rgba(255, 0, 122, 0)'
               ]
             }}
@@ -170,15 +170,15 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
               ease: 'easeOut'
             }}
           >
-            <span>🎮</span>
+            <span className="text-3xl">🎮</span>
             <span>Play to Win!</span>
-            <span>🏆</span>
+            <span className="text-3xl">🏆</span>
           </motion.div>
         </motion.button>
 
         {/* Signature */}
         <motion.div
-          className="mt-6 text-xl"
+          className="mt-4 text-lg"
           style={{
             fontFamily: 'cursive, Georgia, serif',
             color: '#fff'
@@ -192,7 +192,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Instructions */}
         <motion.div 
-          className="mt-3 text-xs"
+          className="mt-2 text-xs"
           style={{ opacity: 0.6 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.6 }}
