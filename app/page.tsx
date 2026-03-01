@@ -65,16 +65,16 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
         ))}
       </div>
 
-      {/* Glass Card */}
+      {/* Glass Card - Moved up with -mt-20 */}
       <motion.div
-        className="relative z-10 w-full max-w-sm text-center"
+        className="relative z-10 w-full max-w-sm text-center -mt-20"
         style={{
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           borderRadius: '40px',
-          padding: '40px 24px',
+          padding: '32px 24px',
           boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
         }}
         initial={{ opacity: 0, y: 50 }}
@@ -101,7 +101,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Subtitle */}
         <motion.p 
-          className="text-lg mb-6"
+          className="text-lg mb-4"
           style={{ opacity: 0.8 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.8 }}
@@ -116,7 +116,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.25, type: 'spring' }}
-            className="mb-6"
+            className="mb-4"
           >
             <span 
               className="text-2xl font-bold px-6 py-2 rounded-full"
@@ -132,13 +132,13 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Quote */}
         <motion.p 
-          className="text-lg italic mb-10"
+          className="text-base italic mb-8"
           style={{ color: '#00f2ff' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          "Grateful for another year and<br />amazing people like you in my life."
+          "Grateful for another year and<br />amazing people like you."
         </motion.p>
 
         {/* Juicy Play Button */}
@@ -151,7 +151,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
           transition={{ delay: 0.4 }}
         >
           <motion.div
-            className="px-10 py-5 rounded-full font-extrabold text-lg uppercase tracking-widest text-white flex items-center gap-3"
+            className="px-8 py-4 rounded-full font-extrabold text-base uppercase tracking-widest text-white flex items-center gap-3"
             style={{
               background: 'linear-gradient(45deg, #ff007a, #7000ff)',
               boxShadow: '0 10px 30px rgba(255, 0, 122, 0.4)'
@@ -177,7 +177,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Signature */}
         <motion.div
-          className="mt-8 text-2xl"
+          className="mt-6 text-xl"
           style={{
             fontFamily: 'cursive, Georgia, serif',
             color: '#fff'
@@ -191,7 +191,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 
         {/* Instructions */}
         <motion.div 
-          className="mt-4 text-sm"
+          className="mt-3 text-xs"
           style={{ opacity: 0.6 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.6 }}
@@ -207,9 +207,11 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
 // Game - Fullscreen with Nepali theme
 const FlappyGame = ({ onBack }: { onBack: () => void }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const birdImgRef = useRef<HTMLImageElement | null>(null);
   const [gameState, setGameState] = useState<'waiting' | 'playing' | 'gameover'>('waiting');
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
+  const [birdLoaded, setBirdLoaded] = useState(false);
 
   const gameStateRef = useRef(gameState);
   const scoreRef = useRef(score);
@@ -217,13 +219,26 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
   useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
   useEffect(() => { scoreRef.current = score; }, [score]);
 
+  // Load bird image
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      birdImgRef.current = img;
+      setBirdLoaded(true);
+    };
+    img.onerror = () => {
+      setBirdLoaded(true);
+    };
+    img.src = '/bird.png';
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Fullscreen dimensions
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -236,7 +251,7 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     let birdY = canvas.height / 2;
     let birdVy = 0;
     const birdX = window.innerWidth * 0.2;
-    const birdR = 24;
+    const birdR = 28;
     let pipes: any[] = [];
     let mountainsOffset = 0;
 
@@ -266,12 +281,10 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     canvas.addEventListener('click', jump);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
 
-    // Draw Nepali mountains
     const drawMountains = (offset: number) => {
       const w = canvas.width;
       const h = canvas.height;
       
-      // Far mountains (Himalayas style)
       ctx.fillStyle = '#8B7355';
       ctx.beginPath();
       for (let i = 0; i <= w; i += 50) {
@@ -282,7 +295,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       ctx.lineTo(0, h);
       ctx.fill();
 
-      // Mid mountains
       ctx.fillStyle = '#A0522D';
       ctx.beginPath();
       for (let i = 0; i <= w; i += 40) {
@@ -293,7 +305,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       ctx.lineTo(0, h);
       ctx.fill();
 
-      // Near hills (green)
       ctx.fillStyle = '#228B22';
       ctx.beginPath();
       for (let i = 0; i <= w; i += 30) {
@@ -304,7 +315,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       ctx.lineTo(0, h);
       ctx.fill();
 
-      // Rice terraces effect
       ctx.strokeStyle = '#1a6b1a';
       ctx.lineWidth = 2;
       for (let y = h - 50; y < h; y += 15) {
@@ -316,7 +326,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       }
     };
 
-    // Draw prayer flags
     const drawPrayerFlags = (x: number, y: number) => {
       const colors = ['#3498db', '#fff', '#e74c3c', '#f1c40f', '#2ecc71'];
       ctx.strokeStyle = '#8B4513';
@@ -332,40 +341,32 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       });
     };
 
-    // Draw bird (yellow chick style)
     const drawBird = (x: number, y: number, rotation: number) => {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotation);
       
-      // Yellow body
-      ctx.fillStyle = '#FFD700';
-      ctx.beginPath();
-      ctx.arc(0, 0, birdR - 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#FFA500';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      
-      // Eye
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.arc(6, -4, 3, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Beak
-      ctx.fillStyle = '#FF8C00';
-      ctx.beginPath();
-      ctx.moveTo(10, 0);
-      ctx.lineTo(18, 4);
-      ctx.lineTo(10, 8);
-      ctx.fill();
-      
-      // Wing
-      ctx.fillStyle = '#FFA500';
-      ctx.beginPath();
-      ctx.ellipse(-4, 4, 8, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
+      if (birdImgRef.current && birdLoaded) {
+        ctx.drawImage(birdImgRef.current, -birdR, -birdR, birdR * 2, birdR * 2);
+      } else {
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(0, 0, birdR - 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#FFA500';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(6, -4, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FF8C00';
+        ctx.beginPath();
+        ctx.moveTo(10, 0);
+        ctx.lineTo(18, 4);
+        ctx.lineTo(10, 8);
+        ctx.fill();
+      }
       
       ctx.restore();
     };
@@ -374,7 +375,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       const w = canvas.width;
       const h = canvas.height;
 
-      // Sky gradient (Nepali sky)
       const grad = ctx.createLinearGradient(0, 0, 0, h);
       grad.addColorStop(0, '#1e3c72');
       grad.addColorStop(0.5, '#87CEEB');
@@ -382,7 +382,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
-      // Sun
       ctx.fillStyle = 'rgba(255, 200, 100, 0.3)';
       ctx.beginPath();
       ctx.arc(w * 0.8, h * 0.15, 60, 0, Math.PI * 2);
@@ -399,7 +398,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       }
       drawMountains(mountainsOffset);
 
-      // Prayer flags
       drawPrayerFlags(w * 0.7, h * 0.6);
       drawPrayerFlags(w * 0.3, h * 0.55);
 
@@ -419,7 +417,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         birdVy += 0.4;
         birdY += birdVy;
 
-        // Ground/ceiling collision
         if (birdY + birdR > h - 20 || birdY - birdR < 0) {
           setGameState('gameover');
           if (scoreRef.current > highScore) setHighScore(scoreRef.current);
@@ -439,7 +436,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
           const pipeWidth = 60;
           const gap = p.gap || 160;
           
-          // Top pipe
           ctx.fillStyle = '#D2691E';
           ctx.fillRect(p.x, 0, pipeWidth, p.th);
           ctx.strokeStyle = '#8B4513';
@@ -453,7 +449,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
           ctx.fillStyle = '#CD853F';
           ctx.fillRect(p.x - 5, p.th - 25, pipeWidth + 10, 25);
           
-          // Bottom pipe
           ctx.fillStyle = '#D2691E';
           ctx.fillRect(p.x, p.th + gap, pipeWidth, h - p.th - gap);
           for (let y = p.th + gap + 10; y < h; y += 20) {
@@ -477,7 +472,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
 
         drawBird(birdX, birdY, Math.min(Math.max(birdVy * 0.05, -0.5), 0.5));
 
-        // Score
         ctx.fillStyle = 'white';
         ctx.font = 'bold 56px system-ui';
         ctx.textAlign = 'center';
@@ -487,7 +481,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         ctx.shadowBlur = 0;
       }
       else {
-        // Game over state - Show 3 options
         pipes.forEach((p) => {
           ctx.fillStyle = '#D2691E';
           ctx.fillRect(p.x, 0, 60, p.th);
@@ -512,7 +505,6 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         ctx.font = '26px system-ui';
         ctx.fillText(`Best: ${Math.max(highScore, scoreRef.current)}`, w / 2, h / 2 - 20);
         
-        // Three options
         ctx.fillStyle = '#00dbde';
         ctx.font = 'bold 22px system-ui';
         ctx.fillText('👆 Tap to Retry', w / 2, h / 2 + 40);
@@ -530,7 +522,7 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
       cancelAnimationFrame(animId); 
       window.removeEventListener('resize', resize);
     };
-  }, [highScore]);
+  }, [highScore, birdLoaded]);
 
   return (
     <motion.div 
