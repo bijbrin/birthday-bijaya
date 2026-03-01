@@ -446,6 +446,10 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         ctx.fillStyle = 'white'; ctx.font = 'bold 56px system-ui'; ctx.textAlign = 'center';
         ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 10;
         ctx.fillText(scoreRef.current.toString(), w / 2, 80); ctx.shadowBlur = 0;
+        
+        // Instructions at bottom
+        ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = '16px system-ui'; ctx.textAlign = 'center';
+        ctx.fillText('👆 Tap to fly • Dodge bamboo poles!', w / 2, h - 30);
       }
       else {
         drawBird(birdX, birdY, 0.5);
