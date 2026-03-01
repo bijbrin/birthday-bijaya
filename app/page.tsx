@@ -20,7 +20,7 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
   
   return (
     <motion.div 
-      className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden"
+      className="min-h-screen w-full flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -40,10 +40,10 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
         ))}
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md flex flex-col justify-center flex-1">
         {/* Main Card */}
         <motion.div
-          className="bg-white rounded-3xl p-8 shadow-2xl"
+          className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl"
           initial={{ y: 60, opacity: 0, scale: 0.9 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           transition={{ type: 'spring', bounce: 0.3 }}
@@ -58,16 +58,16 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
             <span className="text-4xl">💝</span>
           </motion.div>
 
-          {/* Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-black text-gray-800 mb-2">
+          {/* Title - Centered */}
+          <div className="text-center mb-6">
+            <h1 className="text-4xl sm:text-5xl font-black text-gray-800 mb-3">
               Thank You
             </h1>
             {name && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="inline-block px-6 py-2 rounded-full text-2xl font-bold text-white mb-4"
+                className="inline-block px-6 py-2 rounded-full text-xl sm:text-2xl font-bold text-white mb-3"
                 style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }}
               >
                 {name}!
@@ -76,51 +76,51 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
             <p className="text-gray-500 text-lg">For all the birthday wishes 🎂</p>
           </div>
 
-          {/* Quote Card */}
+          {/* Quote Card - Centered */}
           <motion.div
-            className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 mb-8 border border-purple-100"
+            className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 sm:p-6 mb-6 border border-purple-100 text-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
             <div className="text-3xl mb-2">💬</div>
-            <p className="text-gray-700 text-lg italic leading-relaxed">
+            <p className="text-gray-700 text-base sm:text-lg italic leading-relaxed">
               "Grateful for another year and amazing people like you in my life."
             </p>
-            <div className="mt-4 flex items-center gap-2">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-purple-300"></div>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <div className="h-px w-12 bg-gradient-to-r from-transparent to-purple-300"></div>
               <span className="text-purple-500 font-medium">— {name || 'Bijaya'}</span>
-              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-pink-300"></div>
+              <div className="h-px w-12 bg-gradient-to-l from-transparent to-pink-300"></div>
             </div>
           </motion.div>
 
-          {/* BIG Button */}
+          {/* BIG Beautiful Button */}
           <motion.button
             onClick={() => { setPressed(true); setTimeout(onPlay, 150); }}
             className="w-full relative"
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.97 }}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
             {/* Shadow */}
             <div 
-              className="absolute inset-0 rounded-2xl bg-purple-700 transition-transform duration-100"
-              style={{ transform: pressed ? 'translateY(0)' : 'translateY(6px)' }}
+              className="absolute inset-0 rounded-2xl bg-purple-800 transition-transform duration-100"
+              style={{ transform: pressed ? 'translateY(0)' : 'translateY(8px)' }}
             />
             
             {/* Button Face */}
             <div 
-              className="relative rounded-2xl py-5 px-8 font-black text-xl text-white flex items-center justify-center gap-3 transition-transform duration-100"
+              className="relative rounded-2xl py-6 px-8 font-black text-2xl text-white flex items-center justify-center gap-4 transition-transform duration-100"
               style={{ 
-                background: 'linear-gradient(180deg, #a855f7 0%, #9333ea 100%)',
-                transform: pressed ? 'translateY(6px)' : 'translateY(0)',
-                boxShadow: pressed ? 'none' : 'inset 0 -4px 0 rgba(0,0,0,0.2)',
+                background: 'linear-gradient(180deg, #c084fc 0%, #a855f7 50%, #9333ea 100%)',
+                transform: pressed ? 'translateY(8px)' : 'translateY(0)',
+                boxShadow: pressed ? 'none' : 'inset 0 -6px 0 rgba(0,0,0,0.2), 0 4px 20px rgba(168, 85, 247, 0.5)',
               }}
             >
-              <span className="text-2xl">🎮</span>
-              <span className="uppercase tracking-wider">Play to Win!</span>
-              <span className="text-2xl">🏆</span>
+              <span className="text-3xl">🎮</span>
+              <span className="uppercase tracking-widest">Play to Win!</span>
+              <span className="text-3xl">🏆</span>
             </div>
           </motion.button>
 
