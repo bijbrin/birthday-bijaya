@@ -264,18 +264,21 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     };
     
     const jump = () => {
-      const s = gameStateRef.current;
-      if (s === 'waiting') { 
-        setGameState('playing'); 
-        birdVy = -7; 
-      }
-      else if (s === 'playing') {
-        birdVy = -7;
-      }
-      else if (s === 'gameover') { 
-        resetGame();
-        setGameState('waiting');
-      }
+      setGameState(prev => {
+        if (prev === 'waiting') { 
+          birdVy = -7; 
+          return 'playing';
+        }
+        else if (prev === 'playing') {
+          birdVy = -7;
+          return prev;
+        }
+        else if (prev === 'gameover') { 
+          resetGame();
+          return 'waiting';
+        }
+        return prev;
+      });
     };
 
     canvas.addEventListener('click', jump);
