@@ -460,7 +460,7 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         else if (playerBest === 20) { ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 24px system-ui'; ctx.fillText('🤝 You tied with Bijaya!', w / 2, h / 2 + 40); }
         else { ctx.fillStyle = '#ff007a'; ctx.font = 'bold 24px system-ui'; ctx.fillText('💪 Can you beat the creator?', w / 2, h / 2 + 40); }
         ctx.fillStyle = '#00dbde'; ctx.font = 'bold 20px system-ui';
-        ctx.fillText('👆 Tap to Retry', w / 2, h / 2 + 90);
+        // Removed: ctx.fillText('👆 Tap to Retry', w / 2, h / 2 + 90);
       }
       animId = requestAnimationFrame(draw);
     };
