@@ -14,40 +14,195 @@ const useNameFromParams = () => {
   return name;
 };
 
-// Thank You Screen - Apple Music Replay Style
+// Thank You Screen - Dark Mesh Gradient + Glassmorphism
 const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) => {
   return (
     <motion.div 
-      className="min-h-screen w-full flex flex-col items-center justify-center p-4 relative overflow-hidden"
+      className="min-h-screen w-full flex items-center justify-center p-5 relative overflow-hidden"
       style={{ 
-        background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #a18cd1 50%, #fbc2eb 75%, #667eea 100%)',
-        backgroundSize: '400% 400%'
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Animated mesh gradient background */}
+      {/* Animated Mesh Background */}
       <motion.div 
-        className="fixed inset-0 pointer-events-none"
-        animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
-        transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+        className="fixed inset-0 pointer-events-none z-0"
         style={{
-          background: 'radial-gradient(ellipse at 20% 20%, rgba(255, 154, 158, 0.4) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(102, 126, 234, 0.4) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(161, 140, 209, 0.3) 0%, transparent 60%)',
+          background: 'radial-gradient(circle at 20% 30%, rgba(112, 0, 255, 0.4) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(255, 0, 122, 0.4) 0%, transparent 40%)',
+          filter: 'blur(80px)'
         }}
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Parallax Emojis - Foreground (large, blurred) */}
-      <div className="fixed inset-0 pointer-events-none">
-        {[...Array(6)].map((_, i) => (
+      {/* Floating Emojis with Depth */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        {[...Array(25)].map((_, i) => (
           <motion.div
-            key={`fg-${i}`}
-            className="absolute opacity-20"
+            key={i}
+            className="absolute"
             style={{ 
-              left: `${10 + i * 15}%`, 
-              top: `${20 + (i % 3) * 25}%`,
-              fontSize: `${60 + Math.random() * 40}px`,
-              filter: 'blur(2px)'
+              left: `${Math.random() * 100}%`, 
+              top: `${Math.random() * 100}%`,
+              fontSize: `${10 + Math.random() * 25}px`,
+              opacity: 0.3 + Math.random() * 0.4,
+              filter: `blur(${Math.random() * 3}px)`
             }}
+            animate={{ 
+              y: [0, -(50 + Math.random() * 100), 0], 
+              rotate: [0, Math.random() * 360, 0]
+            }}
+            transition={{ 
+              duration: 4 + Math.random() * 4, 
+              repeat: Infinity, 
+              ease: 'easeInOut',
+              delay: Math.random() * 3
+            }}
+          >
+            {['✨', '🎉', '💖', '⭐', '🎈', '🎊', '🎂', '🎁', '🎵', '🌸'][i % 10]}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Glass Card */}
+      <motion.div
+        className="relative z-10 w-full max-w-sm text-center"
+        style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '40px',
+          padding: '40px 24px',
+          boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
+        }}
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.175, 0.885, 0.32, 1.275] }}
+      >
+        {/* Title */}
+        <motion.h1 
+          className="text-5xl font-extrabold mb-2"
+          style={{
+            background: 'linear-gradient(to bottom, #fff, #bbb)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            letterSpacing: '-1px',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          Thank You
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p 
+          className="text-lg mb-6"
+          style={{ opacity: 0.8 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.8 }}
+          transition={{ delay: 0.2 }}
+        >
+          For all the birthday wishes 🎂
+        </motion.p>
+
+        {/* Name Badge */}
+        {name && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.25, type: 'spring' }}
+            className="mb-6"
+          >
+            <span 
+              className="text-2xl font-bold px-6 py-2 rounded-full"
+              style={{
+                background: 'linear-gradient(45deg, #ff007a, #7000ff)',
+                color: 'white'
+              }}
+            >
+              {name}!
+            </span>
+          </motion.div>
+        )}
+
+        {/* Quote */}
+        <motion.p 
+          className="text-lg italic mb-10"
+          style={{ color: '#00f2ff' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          "Grateful for another year and<br />amazing people like you in my life."
+        </motion.p>
+
+        {/* Juicy Play Button */}
+        <motion.button
+          onClick={onPlay}
+          className="relative cursor-pointer"
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <motion.div
+            className="px-10 py-5 rounded-full font-extrabold text-lg uppercase tracking-widest text-white flex items-center gap-3"
+            style={{
+              background: 'linear-gradient(45deg, #ff007a, #7000ff)',
+              boxShadow: '0 10px 30px rgba(255, 0, 122, 0.4)'
+            }}
+            animate={{
+              boxShadow: [
+                '0 0 0 0 rgba(255, 0, 122, 0.7)',
+                '0 0 0 20px rgba(255, 0, 122, 0)',
+                '0 0 0 0 rgba(255, 0, 122, 0)'
+              ]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeOut'
+            }}
+          >
+            <span>🎮</span>
+            <span>Play to Win!</span>
+            <span>🏆</span>
+          </motion.div>
+        </motion.button>
+
+        {/* Signature */}
+        <motion.div
+          className="mt-8 text-2xl"
+          style={{
+            fontFamily: 'cursive, Georgia, serif',
+            color: '#fff'
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          — {name || 'Bijaya'}
+        </motion.div>
+
+        {/* Instructions */}
+        <motion.div 
+          className="mt-4 text-sm"
+          style={{ opacity: 0.6 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          transition={{ delay: 0.6 }}
+        >
+          👆 Tap 🌲 Dodge ⭐ Score
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+};
             animate={{ 
               y: [0, -50, 0], 
               rotate: [0, 15, -15, 0],
