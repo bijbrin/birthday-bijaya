@@ -89,17 +89,15 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
   };
 
   return (
-    <motion.div 
-      className="fixed inset-0 w-full h-full overflow-hidden flex items-center justify-center"
+    <div 
+      className="fixed inset-0 w-full h-full overflow-hidden"
       style={{ 
         background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
       }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
     >
       {/* Animated Mesh Background */}
       <motion.div 
-        className="fixed inset-0 pointer-events-none z-0"
+        className="absolute inset-0 pointer-events-none"
         style={{
           background: 'radial-gradient(circle at 20% 30%, rgba(112, 0, 255, 0.4) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(255, 0, 122, 0.4) 0%, transparent 40%)',
           filter: 'blur(80px)'
@@ -118,22 +116,23 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
         />
       ))}
 
-      {/* Floating Emojis - Absolute positioned */}
+      {/* Floating Emojis - TRUE Absolute positioned randomly */}
       {emojis.map((e) => (
         <motion.div
           key={e.id}
-          className="absolute pointer-events-none z-0"
+          className="absolute"
           style={{ 
             left: `${e.left}%`, 
             top: `${e.top}%`,
             fontSize: `${e.size}px`,
             filter: `blur(${e.blur}px)`,
-            textShadow: '0 0 10px rgba(255,255,255,0.3)'
+            textShadow: '0 0 10px rgba(255,255,255,0.3)',
+            zIndex: 0
           }}
           animate={{ 
             y: [0, -60, 0], 
             rotate: [0, e.rotate, 0],
-            opacity: [0.4, 0.8, 0.4]
+            opacity: [0.3, 0.7, 0.3]
           }}
           transition={{ 
             duration: e.duration, 
@@ -146,141 +145,93 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
         </motion.div>
       ))}
 
-      {/* Glass Card - True Center */}
-      <motion.div
-        className="relative z-10 w-11/12 max-w-sm"
-        style={{
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          borderRadius: '32px',
-          padding: '28px 20px',
-          boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
-        }}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        {/* Title */}
-        <motion.h1 
-          className="text-4xl sm:text-5xl font-black mb-2 text-center"
+      {/* Center Container */}
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        {/* Glass Card */}
+        <motion.div
+          className="relative w-full max-w-xs"
           style={{
-            background: 'linear-gradient(to bottom, #fff 0%, #ccc 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            letterSpacing: '-1px'
+            background: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            borderRadius: '32px',
+            padding: '32px 24px',
+            boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+            zIndex: 10
           }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
         >
-          Thank You
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p 
-          className="text-base text-center mb-3"
-          style={{ color: 'rgba(255,255,255,0.8)' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          For all the birthday wishes 🎂
-        </motion.p>
-
-        {/* Name Badge */}
-        {name && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.25, type: 'spring' }}
-            className="mb-4 text-center"
+          {/* Title */}
+          <h1 
+            className="text-4xl font-black mb-2 text-center"
+            style={{
+              background: 'linear-gradient(to bottom, #fff, #aaa)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
           >
-            <span 
-              className="inline-block text-xl font-bold px-5 py-2 rounded-full"
-              style={{
-                background: 'linear-gradient(45deg, #ff007a, #7000ff)',
-                color: 'white'
-              }}
-            >
-              {name}!
-            </span>
-          </motion.div>
-        )}
+            Thank You
+          </h1>
 
-        {/* Quote */}
-        <motion.p 
-          className="text-sm italic mb-6 text-center"
-          style={{ color: '#00f2ff' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          "Grateful for another year and amazing people like you."
-        </motion.p>
+          {/* Subtitle */}
+          <p className="text-base text-center mb-3" style={{ color: 'rgba(255,255,255,0.8)' }}>
+            For all the birthday wishes 🎂
+          </p>
 
-        {/* BIG Play Button */}
-        <motion.button
-          onClick={onPlay}
-          className="w-full relative cursor-pointer"
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <motion.div
-            className="w-full py-5 rounded-full font-black text-lg uppercase tracking-widest text-white flex items-center justify-center gap-3"
+          {/* Name Badge */}
+          {name && (
+            <div className="mb-4 text-center">
+              <span 
+                className="inline-block text-xl font-bold px-5 py-2 rounded-full"
+                style={{
+                  background: 'linear-gradient(45deg, #ff007a, #7000ff)',
+                  color: 'white'
+                }}
+              >
+                {name}!
+              </span>
+            </div>
+          )}
+
+          {/* Quote */}
+          <p className="text-sm italic mb-6 text-center" style={{ color: '#00f2ff' }}>
+            "Grateful for another year and amazing people like you."
+          </p>
+
+          {/* BIG Play Button - Full Width */}
+          <button
+            onClick={onPlay}
+            className="w-full py-5 rounded-full font-black text-xl uppercase tracking-widest text-white flex items-center justify-center gap-3 cursor-pointer"
             style={{
               background: 'linear-gradient(45deg, #ff007a, #7000ff)',
-              boxShadow: '0 10px 40px rgba(255, 0, 122, 0.5)'
-            }}
-            animate={{
-              boxShadow: [
-                '0 0 0 0 rgba(255, 0, 122, 0.7)',
-                '0 0 0 20px rgba(255, 0, 122, 0)',
-                '0 0 0 0 rgba(255, 0, 122, 0)'
-              ]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeOut'
+              boxShadow: '0 10px 40px rgba(255, 0, 122, 0.5)',
+              border: 'none'
             }}
           >
-            <span className="text-2xl">🎮</span>
+            <span style={{ fontSize: '28px' }}>🎮</span>
             <span>Play to Win!</span>
-            <span className="text-2xl">🏆</span>
-          </motion.div>
-        </motion.button>
+            <span style={{ fontSize: '28px' }}>🏆</span>
+          </button>
 
-        {/* Signature */}
-        <motion.div
-          className="mt-5 text-lg text-center"
-          style={{
-            fontFamily: 'cursive, Georgia, serif',
-            color: '#fff'
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          — {name || 'Bijaya'}
-        </motion.div>
+          {/* Signature */}
+          <div
+            className="mt-5 text-xl text-center"
+            style={{ fontFamily: 'cursive, Georgia, serif', color: '#fff' }}
+          >
+            — {name || 'Bijaya'}
+          </div>
 
-        {/* Instructions */}
-        <motion.div 
-          className="mt-2 text-xs text-center"
-          style={{ color: 'rgba(255,255,255,0.5)' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          👆 Tap 🌲 Dodge ⭐ Score
+          {/* Instructions */}
+          <div className="mt-3 text-xs text-center" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            👆 Tap 🌲 Dodge ⭐ Score
+          </div>
         </motion.div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 
