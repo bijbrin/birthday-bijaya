@@ -528,6 +528,20 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     };
   }, [highScore, birdLoaded]);
 
+  // Reset game when component unmounts
+  useEffect(() => {
+    return () => {
+      setGameState('waiting');
+      setScore(0);
+    };
+  }, []);
+
+  const handleBack = () => {
+    setGameState('waiting');
+    setScore(0);
+    onBack();
+  };
+
   return (
     <motion.div 
       className="fixed inset-0 w-full h-full overflow-hidden"
@@ -537,7 +551,7 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
     >
       <div className="absolute top-4 left-4 z-20">
         <button 
-          onClick={onBack}
+          onClick={handleBack}
           className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white font-bold hover:bg-white/30 transition border border-white/30"
         >
           ← Back
