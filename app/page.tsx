@@ -299,6 +299,19 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
   useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
   useEffect(() => { scoreRef.current = score; }, [score]);
 
+  // Load high score from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('bijaya-highscore');
+    if (saved) {
+      setHighScore(parseInt(saved, 10));
+    }
+  }, []);
+
+  // Save high score to localStorage when it updates
+  useEffect(() => {
+    localStorage.setItem('bijaya-highscore', highScore.toString());
+  }, [highScore]);
+
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -577,23 +590,44 @@ const FlappyGame = ({ onBack }: { onBack: () => void }) => {
         ctx.fillStyle = '#ef4444';
         ctx.font = 'bold 42px system-ui';
         ctx.textAlign = 'center';
-        ctx.fillText('Game Over!', w / 2, h / 2 - 120);
+        ctx.fillText('Game Over!', w / 2, h / 2 - 140);
         
         ctx.fillStyle = 'white';
         ctx.font = '30px system-ui';
-        ctx.fillText(`Score: ${scoreRef.current}`, w / 2, h / 2 - 60);
+        ctx.fillText(`Score: ${scoreRef.current}`, w / 2, h / 2 - 80);
         
         ctx.fillStyle = '#fbbf24';
         ctx.font = '26px system-ui';
-        ctx.fillText(`Best: ${Math.max(highScore, scoreRef.current)}`, w / 2, h / 2 - 20);
+        ctx.fillText(`Your Best: ${Math.max(highScore, scoreRef.current)}`, w / 2, h / 2 - 40);
+        
+        // Bijaya's score comparison
+        const bijayaScore = 20;
+        const playerBest = Math.max(highScore, scoreRef.current);
+        ctx.fillStyle = '#00f2ff';
+        ctx.font = '22px system-ui';
+        ctx.fillText(`Bijaya's Best: ${bijayaScore}`, w / 2, h / 2);
+        
+        if (playerBest > bijayaScore) {
+          ctx.fillStyle = '#22c55e';
+          ctx.font = 'bold 24px system-ui';
+          ctx.fillText('🏆 You beat the Birthday Boy!', w / 2, h / 2 + 40);
+        } else if (playerBest === bijayaScore) {
+          ctx.fillStyle = '#fbbf24';
+          ctx.font = 'bold 24px system-ui';
+          ctx.fillText('🤝 You tied with Bijaya!', w / 2, h / 2 + 40);
+        } else {
+          ctx.fillStyle = '#ff007a';
+          ctx.font = 'bold 24px system-ui';
+          ctx.fillText('💪 Can you beat the creator?', w / 2, h / 2 + 40);
+        }
         
         ctx.fillStyle = '#00dbde';
-        ctx.font = 'bold 22px system-ui';
-        ctx.fillText('👆 Tap to Retry', w / 2, h / 2 + 40);
+        ctx.font = 'bold 20px system-ui';
+        ctx.fillText('👆 Tap to Retry', w / 2, h / 2 + 90);
         
         ctx.fillStyle = '#a855f7';
-        ctx.font = '20px system-ui';
-        ctx.fillText('← Back to Thank You', w / 2, h / 2 + 80);
+        ctx.font = '18px system-ui';
+        ctx.fillText('← Back to Thank You', w / 2, h / 2 + 130);
       }
 
       animId = requestAnimationFrame(draw);
