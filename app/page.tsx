@@ -7,8 +7,13 @@ const useNameFromParams = () => {
   const [name, setName] = useState('');
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const nameParam = new URLSearchParams(window.location.search).get('name');
-      if (nameParam) setName(decodeURIComponent(nameParam));
+      const params = new URLSearchParams(window.location.search);
+      const nameParam = params.get('name');
+      console.log('URL params:', window.location.search);
+      console.log('Name param:', nameParam);
+      if (nameParam) {
+        setName(decodeURIComponent(nameParam));
+      }
     }
   }, []);
   return name;
