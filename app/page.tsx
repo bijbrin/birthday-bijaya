@@ -97,24 +97,24 @@ const ThankYouScreen = ({ name, onPlay }: { name: string; onPlay: () => void }) 
             Thank You
           </h1>
 
-          {name && (
+          {name ? (
             <p style={{
-              fontSize: '24px',
+              fontSize: '28px',
               fontWeight: 'bold',
               color: '#fff',
               marginBottom: '8px'
             }}>
-              {name}!
+              Thank You {name}!
+            </p>
+          ) : (
+            <p style={{
+              fontSize: '14px',
+              color: 'rgba(255,255,255,0.8)',
+              marginBottom: '12px'
+            }}>
+              For all the birthday wishes 🎂
             </p>
           )}
-
-          <p style={{
-            fontSize: '14px',
-            color: 'rgba(255,255,255,0.8)',
-            marginBottom: '12px'
-          }}>
-            For all the birthday wishes 🎂
-          </p>
 
           <p style={{
             fontSize: '13px',
